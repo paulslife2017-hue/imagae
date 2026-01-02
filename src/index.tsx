@@ -803,27 +803,48 @@ app.post('/api/generate-image', async (c) => {
       return c.json({ success: false, error: 'API 키가 설정되지 않았습니다' })
     }
 
-    // 실제 이미지 생성은 GenSpark의 image_generation 도구를 사용해야 합니다
-    // 현재는 placeholder 이미지 반환
-    const imageUrl = `data:image/svg+xml;base64,` + btoa(`
-      <svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="grad${sceneIndex}" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="1280" height="720" fill="url(#grad${sceneIndex})"/>
-        <text x="640" y="320" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="middle">
-          씬 ${sceneIndex + 1}
-        </text>
-        <text x="640" y="400" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" opacity="0.9">
-          ${scene.description.substring(0, 40)}...
-        </text>
-      </svg>
-    `)
+    // 나노바나나 프로 이미지 생성 프롬프트
+    const styleGuide = 'Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.'
     
-    return c.json({ success: true, imageUrl: imageUrl })
+    const imagePrompt = `${styleGuide}
+
+Scene ${sceneIndex + 1} of ${totalScenes}:
+Description: ${scene.description}
+Visual Elements: ${scene.visualElements}
+Duration: ${scene.duration} seconds
+
+Create an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.`
+
+    // 나노바나나 프로 API 호출
+    const imageResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        instances: [{
+          prompt: imagePrompt
+        }],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: '16:9',
+          negativePrompt: 'blurry, low quality, distorted, ugly, bad anatomy',
+          safetyFilterLevel: 'block_some',
+          personGeneration: 'allow_adult'
+        }
+      })
+    })
+
+    const imageData = await imageResponse.json()
+    
+    if (imageData.predictions && imageData.predictions[0]) {
+      const imageBase64 = imageData.predictions[0].bytesBase64Encoded
+      const imageUrl = `data:image/png;base64,${imageBase64}`
+      return c.json({ success: true, imageUrl: imageUrl })
+    } else {
+      throw new Error('이미지 생성 실패')
+    }
     
   } catch (error: any) {
     console.error('오류:', error)
