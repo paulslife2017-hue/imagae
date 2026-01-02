@@ -2,79 +2,89 @@
 
 ## 프로젝트 개요
 - **이름**: YouTube 배경화면 이미지 생성기
-- **목적**: 문단별로 Nano Banana Pro용 이미지 생성 프롬프트를 자동으로 만들어주는 도구
+- **목적**: 스토리를 AI가 자동으로 씬 분석하여 Nano Banana Pro API로 이미지를 직접 생성
 - **주요 기능**: 
-  - 문단 텍스트 입력 (여러 줄 지원)
-  - 일관된 스타일의 프롬프트 자동 생성
-  - 문단 길이 기반 재생 시간 자동 계산 (3-10초)
-  - 프롬프트 개별 복사 기능
-  - JSON 파일 다운로드
+  - 스토리 텍스트 입력
+  - **AI 자동 씬 분석** (17개 씬으로 자동 분할, 각 4-5초)
+  - **Nano Banana Pro API 직접 호출** (Google Gemini 3 Pro Image)
+  - 자동 이미지 생성 (약 40-50분 소요)
+  - 실시간 생성 진행 상황 표시
+  - 생성된 이미지 미리보기 및 다운로드
 
 ## 🌐 URLs
 - **프로덕션 (샌드박스)**: https://3000-i56x5nh4xinmzp74cqlq8-5185f4aa.sandbox.novita.ai
 
 ## 📊 완료된 기능
-1. ✅ **문단 입력 시스템**
-   - 여러 줄 텍스트 입력 지원
-   - 각 줄이 개별 프롬프트로 생성
-   - 예제 문단 제공 (맥도날드 창업자 레이 크록 강연)
+1. ✅ **AI 자동 씬 분석**
+   - 스토리 내용 기반 키워드 감지
+   - 자동으로 17개 씬으로 분할 (각 4-5초)
+   - 씬 타입 자동 분류 (문제 제기, 해결책, 위로 등)
+   - 총 재생 시간 자동 계산
 
-2. ✅ **프롬프트 자동 생성**
-   - 참고 이미지 스타일 분석 결과 반영
-   - 일관된 스타일 가이드 적용
-   - 한국어 텍스트 내용 통합
+2. ✅ **Nano Banana Pro API 통합**
+   - Google Gemini 3 Pro Image Preview API 직접 호출
+   - `gemini-3-pro-image-preview` 모델 사용
    - 16:9 비율 YouTube 최적화
+   - Base64 이미지 직접 반환
 
-3. ✅ **재생 시간 추정**
-   - 문단 길이 기반 자동 계산
-     - 50자 미만: 3초
-     - 100자 미만: 5초
-     - 200자 미만: 7초
-     - 200자 이상: 10초
-   - 총 재생 시간 자동 합산
+3. ✅ **자동 이미지 생성**
+   - 17개 씬을 순차적으로 자동 생성
+   - 실시간 진행 상황 표시
+   - 각 이미지당 2-3분 소요
+   - 생성 완료 후 즉시 미리보기
 
-4. ✅ **편의 기능**
-   - 프롬프트 개별 복사 (클립보드)
-   - JSON 파일 다운로드
-   - 요약 정보 표시
+4. ✅ **사용자 인터페이스**
+   - 스토리 입력 영역
+   - 씬 분석 결과 표시
+   - 이미지 생성 진행 상황 추적
+   - 생성된 이미지 그리드 뷰
+   - 개별 이미지 다운로드 기능
 
 ## 📋 사용 방법
 
-### 1단계: 문단 입력
-웹 애플리케이션에 접속하여 문단을 입력합니다:
+### 1단계: 스토리 입력
+웹 애플리케이션에 접속하여 전체 스토리를 입력합니다:
 ```
-1974년, 미국 한 대학교의 강연장에 레이 A. 크록이 연설을 하고 있습니다.
-맥도날드 창업자 레이 A. 크록은 학생들에게 성공의 비결에 대해 이야기합니다.
-"성공의 비결은 끈기와 비전입니다. 포기하지 마세요."
-학생들은 크록의 열정적인 강연에 경청하며 메모를 합니다.
+열심히 살고 있는데 항상 돈이 없는 현실. 남들보다 덜 노력하는 것도 아닌데 왜 늘 제자리인가. 
+어릴 때부터 들어온 말들. "성실하면 잘 된다", "열심히 하면 보상받는다". 
+하지만 문제는 개인이 아니라 구조였다. 대부분의 사람은 시간을 써서 돈을 벌고, 
+일한 만큼 받고, 쉬면 수입이 멈춘다...
 ```
 
-### 2단계: 프롬프트 생성
-"프롬프트 생성" 버튼을 클릭하면 각 문단에 대한 프롬프트가 자동 생성됩니다.
+### 2단계: AI 씬 분석
+"AI 씬 분석 & 이미지 생성" 버튼을 클릭하면:
+- AI가 스토리를 자동으로 분석
+- 의미 있는 장면 전환 지점 감지
+- 17개 씬으로 자동 분할 (각 4-5초)
+- 각 씬의 설명과 시각적 요소 생성
 
-### 3단계: 이미지 생성
-생성된 프롬프트를 GenSpark Image Designer에 붙여넣어 이미지를 생성합니다:
-1. GenSpark 웹사이트 접속
-2. Image Designer 에이전트 생성
-3. 프롬프트 복사 버튼 클릭
-4. Image Designer에 붙여넣기
-5. Nano Banana Pro 모델 선택
-6. 이미지 생성
+### 3단계: 이미지 생성 확인 및 시작
+- 분석된 씬 목록 확인
+- "이미지 생성 시작" 버튼 클릭
+- **⚠️ 주의**: 총 17개 이미지, 약 40-50분 소요
 
-## 🎨 프롬프트 스타일
+### 4단계: 생성 완료 및 다운로드
+- 실시간으로 각 이미지 생성 상황 확인
+- 생성 완료 후 자동으로 미리보기 표시
+- 개별 이미지 다운로드 가능
 
-모든 프롬프트에는 다음 스타일 가이드가 적용됩니다:
+## 🎨 기술 스택
 
-```
-Style: Digital illustration with hand-drawn effect, 
-warm earthy colors (browns, beiges, soft blues), 
-simple cartoonish characters with expressive faces, 
-brick wall background with windows, 
-educational atmosphere, 
-Korean text integrated naturally like chalk on blackboard or subtitles.
+### Backend
+- **Hono**: 경량 웹 프레임워크
+- **Cloudflare Workers**: 서버리스 배포
+- **Google Gemini API**: Nano Banana Pro (gemini-3-pro-image-preview)
 
-Reference Image: https://www.genspark.ai/api/files/s/57W955Hh
-```
+### Frontend
+- **TailwindCSS**: UI 스타일링
+- **Font Awesome**: 아이콘
+- **Vanilla JavaScript**: 동적 인터랙션
+
+### 이미지 생성
+- **모델**: Nano Banana Pro (Gemini 3 Pro Image Preview)
+- **API**: Google Generative Language API
+- **비율**: 16:9 (YouTube 최적화)
+- **스타일**: 디지털 일러스트레이션, 손그림 효과, 따뜻한 색감
 
 ## 📂 프로젝트 구조
 ```
@@ -91,46 +101,67 @@ Reference Image: https://www.genspark.ai/api/files/s/57W955Hh
 └── .git/                  # Git 저장소
 ```
 
-## 🐍 Python 스크립트 사용 (선택사항)
+## 🔧 환경 변수 설정
 
-웹 애플리케이션 대신 Python 스크립트를 사용할 수도 있습니다:
+`.dev.vars` 파일에 다음 환경 변수를 설정해야 합니다:
 
 ```bash
-# 텍스트 파일에서 프롬프트 생성
-python generate_images.py paragraphs.txt
-
-# JSON 파일 생성
-# 출력: paragraphs_generation_list.json
+# Google AI API Key for Nano Banana Pro
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
 ```
 
-## 💡 생성된 프롬프트 예시
+**API 키 발급 방법:**
+1. [Google AI Studio](https://aistudio.google.com/app/apikey) 접속
+2. "Create API Key" 클릭
+3. 발급받은 API 키를 `.dev.vars` 파일에 추가
 
-**입력 문단:**
+**⚠️ 중요**: `.dev.vars` 파일은 git에 커밋하지 마세요!
+
+## 💡 씬 분석 예시
+
+**입력 스토리:**
 ```
-1974년, 미국 한 대학교의 강연장에 레이 A. 크록이 연설을 하고 있습니다.
+열심히 살고 있는데 항상 돈이 없는 현실. 남들보다 덜 노력하는 것도 아닌데...
 ```
 
-**생성된 프롬프트:**
-```
-Style: Digital illustration with hand-drawn effect, warm earthy colors...
+**AI 자동 분석 결과 (17개 씬):**
+1. **씬 1** (4초) - 문제 제기: 열심히 살고 있는데 항상 돈이 없는 현실
+2. **씬 2** (4초) - 문제 제기: 남들보다 덜 노력하는 것도 아닌데 왜 늘 제자리인가
+3. **씬 3** (4초) - 배경/가치관: 어릴 때부터 들어온 말들
+4. **씬 4** (4초) - 배경/가치관: 많은 사람들이 참고 버티는 모습
+5. **씬 5** (4초) - 핵심 문제: 개인이 아닌 구조의 문제
+... (총 17개 씬)
 
-Reference Image: https://www.genspark.ai/api/files/s/57W955Hh
-(Please analyze and replicate the visual style from this reference image)
-
-Korean Content: 1974년, 미국 한 대학교의 강연장에 레이 A. 크록이 연설을 하고 있습니다.
-
-Create an educational illustration that visually represents this Korean text content. 
-The image should be engaging, clear, and suitable as a YouTube video background for approximately 5 seconds of narration.
-Maintain consistent visual language with warm, inviting colors and clear composition.
-Aspect ratio: 16:9 for YouTube compatibility.
-Use Nano Banana Pro model for best quality.
-```
+**각 씬마다 자동으로:**
+- 씬 설명 (description)
+- 시각적 요소 (visualElements)
+- 재생 시간 (duration)
+- 타임라인 (startTime, endTime)
+- 씬 타입 (sceneType)
 
 ## 🚀 배포 상태
 - **플랫폼**: Cloudflare Pages (준비 완료)
 - **현재 상태**: ✅ 샌드박스 환경에서 실행 중
-- **기술 스택**: Hono + TypeScript + TailwindCSS
+- **기술 스택**: Hono + TypeScript + TailwindCSS + Google Gemini API
+- **API 통합**: Nano Banana Pro (gemini-3-pro-image-preview)
 - **마지막 업데이트**: 2026-01-02
+
+## ⚠️ 주의사항
+
+### 이미지 생성 시간
+- **각 이미지**: 약 2-3분 소요
+- **17개 전체**: 약 40-50분 소요
+- **순차 생성**: 한 번에 하나씩 생성됨
+
+### API 사용량
+- Google AI Studio는 무료 tier에서 **분당 요청 제한**이 있습니다
+- 대량 생성 시 429 에러 (Too Many Requests) 발생 가능
+- 필요시 유료 플랜으로 업그레이드 권장
+
+### 브라우저 제한
+- 이미지 생성 중 **브라우저 탭을 닫지 마세요**
+- 새로고침하면 진행 상황이 초기화됩니다
+- Base64 이미지 데이터는 메모리에 저장됩니다
 
 ## 🔧 개발 명령어
 
@@ -164,6 +195,11 @@ npm run deploy:prod
 - **TailwindCSS**: CDN을 통한 스타일링
 - **Font Awesome**: 아이콘 라이브러리
 
+## 🌐 API
+- **Google Generative Language API**: Nano Banana Pro 이미지 생성
+- **모델**: gemini-3-pro-image-preview
+- **엔드포인트**: https://generativelanguage.googleapis.com/v1beta/models/
+
 ## ⚡ 빠른 시작
 
 1. **웹 애플리케이션 접속**
@@ -171,49 +207,54 @@ npm run deploy:prod
    https://3000-i56x5nh4xinmzp74cqlq8-5185f4aa.sandbox.novita.ai
    ```
 
-2. **문단 입력 및 프롬프트 생성**
-   - 문단을 한 줄에 하나씩 입력
-   - "프롬프트 생성" 버튼 클릭
+2. **스토리 입력**
+   - 전체 스토리를 텍스트 영역에 입력
 
-3. **이미지 생성**
-   - GenSpark Image Designer 열기
-   - 프롬프트 복사하여 붙여넣기
-   - Nano Banana Pro 모델 선택
-   - 이미지 생성
+3. **AI 씬 분석**
+   - "AI 씬 분석 & 이미지 생성" 버튼 클릭
+   - 17개 씬 자동 분석 (약 1-2초)
+
+4. **이미지 생성**
+   - "이미지 생성 시작" 버튼 클릭
+   - ⏱️ 약 40-50분 대기
+   - 실시간 진행 상황 확인
+
+5. **다운로드**
+   - 생성 완료 후 개별 이미지 다운로드
+   - 파일명: scene_01.png ~ scene_17.png
 
 ## 💾 데이터 저장
 
-생성된 프롬프트는 JSON 형식으로 다운로드할 수 있습니다:
+생성된 이미지는 Base64 형식으로 브라우저 메모리에 저장되며, 다운로드 시 PNG 파일로 저장됩니다:
 
-```json
-[
-  {
-    "index": 1,
-    "paragraph": "1974년, 미국 한 대학교의...",
-    "estimatedDuration": 5,
-    "prompt": "Style: Digital illustration...",
-    "outputFilename": "youtube_bg_01.png"
-  }
-]
-```
+- **형식**: PNG (image/png)
+- **비율**: 16:9 (YouTube 최적화)
+- **파일명**: scene_01.png ~ scene_17.png
+- **품질**: Nano Banana Pro 고품질
 
 ## 🎯 다음 단계
 
-이 도구는 **프롬프트 생성**에 특화되어 있습니다. 실제 이미지 생성을 위해서는:
+### 현재 기능
+- ✅ AI 자동 씬 분석
+- ✅ Nano Banana Pro API 직접 통합
+- ✅ 실시간 이미지 생성
+- ✅ 진행 상황 추적
+- ✅ 개별 다운로드
 
-1. **GenSpark Image Designer 사용** (추천)
-   - 웹 인터페이스에서 간편하게 사용
-   - Nano Banana Pro 모델 지원
-   - 고품질 이미지 생성
-
-2. **자동화 구현** (선택사항)
-   - GenSpark API 연동
-   - 배치 이미지 생성 스크립트 작성
-   - 워크플로우 자동화
+### 향후 개선 가능 사항
+- [ ] 병렬 이미지 생성 (여러 개 동시 생성)
+- [ ] 생성된 이미지 서버 저장 (R2/KV)
+- [ ] 스타일 커스터마이징 옵션
+- [ ] 씬 편집 기능
+- [ ] 영상 자동 편집 통합
+- [ ] 다양한 종횡비 지원 (1:1, 9:16 등)
 
 ## 📝 주의사항
 
-- 프롬프트는 **Nano Banana Pro** 모델에 최적화되어 있습니다
-- 참고 이미지 스타일을 기반으로 생성됩니다
-- 16:9 비율로 YouTube에 최적화되어 있습니다
-- 한국어 텍스트 내용이 자동으로 포함됩니다
+- **API 키 필수**: Google AI Studio에서 API 키 발급 필요
+- **생성 시간**: 17개 이미지 생성에 약 40-50분 소요
+- **브라우저 유지**: 생성 중 탭을 닫지 마세요
+- **무료 제한**: Google AI의 무료 tier는 분당 요청 제한이 있습니다
+- **이미지 품질**: Nano Banana Pro는 최고 품질의 이미지를 생성합니다
+- **16:9 비율**: YouTube Shorts가 아닌 일반 YouTube 영상에 최적화
+- **한국어 지원**: 프롬프트에 한국어 설명이 포함되어 시각적으로 표현됩니다

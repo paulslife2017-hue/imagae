@@ -1,0 +1,138 @@
+[
+  {
+    "index": 1,
+    "description": "열심히 살고 있는데 항상 돈이 없는 현실.",
+    "visualElements": "고민하는 사람, 지갑이 비어있는 모습, 답답한 표정",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 열심히 살고 있는데 항상 돈이 없는 현실.\nVisual Elements: 고민하는 사람, 지갑이 비어있는 모습, 답답한 표정\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_01.png"
+  },
+  {
+    "index": 2,
+    "description": "남들보다 덜 노력하는 것도 아닌데 왜 늘 제자리인가에 대한 고민.",
+    "visualElements": "반복되는 일상, 쳇바퀴 같은 생활, 어두운 톤의 배경",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 남들보다 덜 노력하는 것도 아닌데 왜 늘 제자리인가에 대한 고민.\nVisual Elements: 반복되는 일상, 쳇바퀴 같은 생활, 어두운 톤의 배경\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_02.png"
+  },
+  {
+    "index": 3,
+    "description": "어릴 때부터 들어온 말들. \"성실하면 잘 된다\", \"열심히 하면 보상받는다\".",
+    "visualElements": "어린 시절 회상, 선생님이나 부모의 가르침, 희망적이지만 순진한 분위기",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 어릴 때부터 들어온 말들. \"성실하면 잘 된다\", \"열심히 하면 보상받는다\".\nVisual Elements: 어린 시절 회상, 선생님이나 부모의 가르침, 희망적이지만 순진한 분위기\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_03.png"
+  },
+  {
+    "index": 4,
+    "description": "많은 사람들이 불평하지 않고 참고 버티는 모습.",
+    "visualElements": "참고 일하는 사람들, 인내하는 표정, 묵묵히 일하는 장면",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 많은 사람들이 불평하지 않고 참고 버티는 모습.\nVisual Elements: 참고 일하는 사람들, 인내하는 표정, 묵묵히 일하는 장면\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_04.png"
+  },
+  {
+    "index": 5,
+    "description": "개인의 문제가 아닌 구조의 문제. 대부분의 사람은 시간을 써서 돈을 번다.",
+    "visualElements": "시계와 돈의 교환, 톱니바퀴 시스템, 시스템 다이어그램",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 개인의 문제가 아닌 구조의 문제. 대부분의 사람은 시간을 써서 돈을 번다.\nVisual Elements: 시계와 돈의 교환, 톱니바퀴 시스템, 시스템 다이어그램\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_05.png"
+  },
+  {
+    "index": 6,
+    "description": "일한 만큼 받고, 쉬면 수입이 멈춘다.",
+    "visualElements": "쳇바퀴 돌리는 모습, 멈추지 못하는 사람, 끝없는 반복",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 일한 만큼 받고, 쉬면 수입이 멈춘다.\nVisual Elements: 쳇바퀴 돌리는 모습, 멈추지 못하는 사람, 끝없는 반복\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_06.png"
+  },
+  {
+    "index": 7,
+    "description": "돈이 없을수록 더 아끼려 한다. 커피를 줄이고, 사고 싶은 걸 참는다.",
+    "visualElements": "계산기, 가계부, 절약하는 모습, 참는 표정",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 돈이 없을수록 더 아끼려 한다. 커피를 줄이고, 사고 싶은 걸 참는다.\nVisual Elements: 계산기, 가계부, 절약하는 모습, 참는 표정\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_07.png"
+  },
+  {
+    "index": 8,
+    "description": "하고 싶은 걸 미루고 참지만, 이것만으로는 바뀌지 않는다.",
+    "visualElements": "답답한 분위기, 한계를 느끼는 손동작, 좌절하는 모습",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 하고 싶은 걸 미루고 참지만, 이것만으로는 바뀌지 않는다.\nVisual Elements: 답답한 분위기, 한계를 느끼는 손동작, 좌절하는 모습\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_08.png"
+  },
+  {
+    "index": 9,
+    "description": "아낄 수 있는 돈에는 한계가 있지만 벌 수 있는 돈에는 한계가 없다.",
+    "visualElements": "한계선과 무한대 기호, 대비되는 이미지, 새로운 시각",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 아낄 수 있는 돈에는 한계가 있지만 벌 수 있는 돈에는 한계가 없다.\nVisual Elements: 한계선과 무한대 기호, 대비되는 이미지, 새로운 시각\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_09.png"
+  },
+  {
+    "index": 10,
+    "description": "돈이 되는 사람들은 돈의 흐름을 본다. 돈은 관심을 주지 않는 사람 곁에 머물지 않는다.",
+    "visualElements": "돈의 흐름 화살표, 관찰하는 사람, 분석하는 모습, 밝아지는 표정",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 돈이 되는 사람들은 돈의 흐름을 본다. 돈은 관심을 주지 않는 사람 곁에 머물지 않는다.\nVisual Elements: 돈의 흐름 화살표, 관찰하는 사람, 분석하는 모습, 밝아지는 표정\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_10.png"
+  },
+  {
+    "index": 11,
+    "description": "안정적인 삶을 원하지만, 수입이 하나뿐인 상태가 가장 불안정할 수 있다.",
+    "visualElements": "한 줄로 연결된 수입원, 위태로운 균형, 불안한 표정",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 안정적인 삶을 원하지만, 수입이 하나뿐인 상태가 가장 불안정할 수 있다.\nVisual Elements: 한 줄로 연결된 수입원, 위태로운 균형, 불안한 표정\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_11.png"
+  },
+  {
+    "index": 12,
+    "description": "회사 하나, 월급 하나에 모든 걸 맡긴 삶은 쉽게 흔들린다.",
+    "visualElements": "흔들리는 모습, 위험 신호, 깨지는 안전망",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 회사 하나, 월급 하나에 모든 걸 맡긴 삶은 쉽게 흔들린다.\nVisual Elements: 흔들리는 모습, 위험 신호, 깨지는 안전망\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_12.png"
+  },
+  {
+    "index": 13,
+    "description": "가난에서 벗어나는 사람들의 특징. 시간을 쓰는 방식이 달라지고, 돈이 되는 경험을 만든다.",
+    "visualElements": "시간 활용의 변화, 새로운 접근, 밝은 분위기",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 가난에서 벗어나는 사람들의 특징. 시간을 쓰는 방식이 달라지고, 돈이 되는 경험을 만든다.\nVisual Elements: 시간 활용의 변화, 새로운 접근, 밝은 분위기\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_13.png"
+  },
+  {
+    "index": 14,
+    "description": "한 번 한 일을 여러 번 쓰고, 작은 수입을 하나씩 늘려간다.",
+    "visualElements": "여러 개의 수입 파이프라인, 자산을 만드는 모습, 성장하는 그래프, 희망적인 분위기",
+    "duration": 5,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 한 번 한 일을 여러 번 쓰고, 작은 수입을 하나씩 늘려간다.\nVisual Elements: 여러 개의 수입 파이프라인, 자산을 만드는 모습, 성장하는 그래프, 희망적인 분위기\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_14.png"
+  },
+  {
+    "index": 15,
+    "description": "당신이 힘든 이유는 부족해서도 뒤처져서도 아니다.",
+    "visualElements": "위로하는 손길, 따뜻한 빛, 긍정적인 분위기",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 당신이 힘든 이유는 부족해서도 뒤처져서도 아니다.\nVisual Elements: 위로하는 손길, 따뜻한 빛, 긍정적인 분위기\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_15.png"
+  },
+  {
+    "index": 16,
+    "description": "열심히 사는 법만 배웠지 구조는 배운 적이 없었을 뿐이다. 이건 당신 잘못이 아니다.",
+    "visualElements": "깨달음의 순간, 새로운 시각, 안도하는 표정",
+    "duration": 4,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 열심히 사는 법만 배웠지 구조는 배운 적이 없었을 뿐이다. 이건 당신 잘못이 아니다.\nVisual Elements: 깨달음의 순간, 새로운 시각, 안도하는 표정\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_16.png"
+  },
+  {
+    "index": 17,
+    "description": "마지막 질문: 지금의 노력은 나를 어디로 데려가는가?",
+    "visualElements": "질문 텍스트, 희망의 길, 새로운 방향, 긍정적인 결말, 밝은 미래",
+    "duration": 5,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n\nScene Description: 마지막 질문: 지금의 노력은 나를 어디로 데려가는가?\nVisual Elements: 질문 텍스트, 희망의 길, 새로운 방향, 긍정적인 결말, 밝은 미래\n\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.",
+    "outputFilename": "scene_17.png"
+  }
+]

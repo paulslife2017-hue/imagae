@@ -1,7 +1,12 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
-const app = new Hono()
+// 환경 변수 타입 정의
+type Bindings = {
+  GOOGLE_AI_API_KEY: string
+}
+
+const app = new Hono<{ Bindings: Bindings }>()
 
 // CORS 설정
 app.use('/api/*', cors())
@@ -410,124 +415,241 @@ app.post('/api/analyze-scenes', async (c) => {
     // 핵심 키워드와 주제를 기반으로 장면 분석
     const storyLower = story.toLowerCase()
     
-    // 1. 문제 제기 / 현실 인식 장면
+    // 1-1. 문제 제기 - 현실 인식
     if (story.includes('열심히') || story.includes('노력') || story.includes('제자리')) {
-      const duration = 6
+      const duration1 = 4
       scenes.push({
         index: scenes.length + 1,
-        description: '열심히 살고 있는데 항상 돈이 없는 현실. 남들보다 덜 노력하는 것도 아닌데 왜 늘 제자리인가에 대한 고민.',
-        visualElements: '고민하는 사람, 지갑이 비어있는 모습, 반복되는 일상, 답답한 표정, 어두운 톤의 배경',
-        duration: duration,
+        description: '열심히 살고 있는데 항상 돈이 없는 현실.',
+        visualElements: '고민하는 사람, 지갑이 비어있는 모습, 답답한 표정',
+        duration: duration1,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration1,
         sceneType: '문제 제기'
       })
-      currentTime += duration
-    }
+      currentTime += duration1
 
-    // 2. 어린 시절 / 가르침 장면
-    if (story.includes('어릴 때') || story.includes('성실') || story.includes('들어왔다')) {
-      const duration = 5
+      // 1-2. 문제 제기 - 반복되는 패턴
+      const duration2 = 4
       scenes.push({
         index: scenes.length + 1,
-        description: '어릴 때부터 들어온 말들. "성실하면 잘 된다", "열심히 하면 보상받는다". 많은 사람들이 불평하지 않고 참고 버티는 모습.',
-        visualElements: '어린 시절 회상, 선생님이나 부모의 가르침, 참고 일하는 사람들, 희망적이지만 순진한 분위기',
-        duration: duration,
+        description: '남들보다 덜 노력하는 것도 아닌데 왜 늘 제자리인가에 대한 고민.',
+        visualElements: '반복되는 일상, 쳇바퀴 같은 생활, 어두운 톤의 배경',
+        duration: duration2,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration2,
+        sceneType: '문제 제기'
+      })
+      currentTime += duration2
+    }
+
+    // 2-1. 어린 시절의 가르침
+    if (story.includes('어릴 때') || story.includes('성실') || story.includes('들어왔다')) {
+      const duration1 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '어릴 때부터 들어온 말들. "성실하면 잘 된다", "열심히 하면 보상받는다".',
+        visualElements: '어린 시절 회상, 선생님이나 부모의 가르침, 희망적이지만 순진한 분위기',
+        duration: duration1,
+        startTime: currentTime,
+        endTime: currentTime + duration1,
         sceneType: '배경/가치관'
       })
-      currentTime += duration
-    }
+      currentTime += duration1
 
-    // 3. 구조적 문제 인식
-    if (story.includes('구조') || story.includes('시간을 써서')) {
-      const duration = 7
+      // 2-2. 참고 버티는 사람들
+      const duration2 = 4
       scenes.push({
         index: scenes.length + 1,
-        description: '개인의 문제가 아닌 구조의 문제. 대부분의 사람은 시간을 써서 돈을 벌고, 일한 만큼 받고, 쉬면 수입이 멈춘다.',
-        visualElements: '시계와 돈의 교환, 톱니바퀴 시스템, 쳇바퀴 돌리는 모습, 멈추지 못하는 사람, 시스템 다이어그램',
-        duration: duration,
+        description: '많은 사람들이 불평하지 않고 참고 버티는 모습.',
+        visualElements: '참고 일하는 사람들, 인내하는 표정, 묵묵히 일하는 장면',
+        duration: duration2,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration2,
+        sceneType: '배경/가치관'
+      })
+      currentTime += duration2
+    }
+
+    // 3-1. 개인이 아닌 구조의 문제
+    if (story.includes('구조') || story.includes('시간을 써서')) {
+      const duration1 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '개인의 문제가 아닌 구조의 문제. 대부분의 사람은 시간을 써서 돈을 번다.',
+        visualElements: '시계와 돈의 교환, 톱니바퀴 시스템, 시스템 다이어그램',
+        duration: duration1,
+        startTime: currentTime,
+        endTime: currentTime + duration1,
         sceneType: '핵심 문제'
       })
-      currentTime += duration
-    }
+      currentTime += duration1
 
-    // 4. 절약의 한계
-    if (story.includes('아끼') || story.includes('커피') || story.includes('참고')) {
-      const duration = 6
+      // 3-2. 일한 만큼 받는 시스템
+      const duration2 = 4
       scenes.push({
         index: scenes.length + 1,
-        description: '돈이 없을수록 더 아끼려 한다. 커피를 줄이고, 사고 싶은 걸 참고, 하고 싶은 걸 미룬다. 하지만 이것만으로는 바뀌지 않는다.',
-        visualElements: '계산기, 가계부, 절약하는 모습, 참는 표정, 답답한 분위기, 한계를 느끼는 손동작',
-        duration: duration,
+        description: '일한 만큼 받고, 쉬면 수입이 멈춘다.',
+        visualElements: '쳇바퀴 돌리는 모습, 멈추지 못하는 사람, 끝없는 반복',
+        duration: duration2,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration2,
+        sceneType: '핵심 문제'
+      })
+      currentTime += duration2
+    }
+
+    // 4-1. 절약의 시작
+    if (story.includes('아끼') || story.includes('커피') || story.includes('참고')) {
+      const duration1 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '돈이 없을수록 더 아끼려 한다. 커피를 줄이고, 사고 싶은 걸 참는다.',
+        visualElements: '계산기, 가계부, 절약하는 모습, 참는 표정',
+        duration: duration1,
+        startTime: currentTime,
+        endTime: currentTime + duration1,
         sceneType: '잘못된 접근'
       })
-      currentTime += duration
-    }
+      currentTime += duration1
 
-    // 5. 돈의 흐름 이해
-    if (story.includes('흘러가') || story.includes('관심')) {
-      const duration = 7
+      // 4-2. 절약의 한계
+      const duration2 = 4
       scenes.push({
         index: scenes.length + 1,
-        description: '아낄 수 있는 돈에는 한계가 있지만 벌 수 있는 돈에는 한계가 없다. 돈이 되는 사람들은 돈의 흐름을 본다. 돈은 관심을 주지 않는 사람 곁에 머물지 않는다.',
-        visualElements: '돈의 흐름 화살표, 관찰하는 사람, 분석하는 모습, 돈이 흘러가는 방향, 밝아지는 표정',
-        duration: duration,
+        description: '하고 싶은 걸 미루고 참지만, 이것만으로는 바뀌지 않는다.',
+        visualElements: '답답한 분위기, 한계를 느끼는 손동작, 좌절하는 모습',
+        duration: duration2,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration2,
+        sceneType: '잘못된 접근'
+      })
+      currentTime += duration2
+    }
+
+    // 5-1. 돈의 한계 vs 무한 가능성
+    if (story.includes('흘러가') || story.includes('관심')) {
+      const duration1 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '아낄 수 있는 돈에는 한계가 있지만 벌 수 있는 돈에는 한계가 없다.',
+        visualElements: '한계선과 무한대 기호, 대비되는 이미지, 새로운 시각',
+        duration: duration1,
+        startTime: currentTime,
+        endTime: currentTime + duration1,
         sceneType: '핵심 깨달음'
       })
-      currentTime += duration
-    }
+      currentTime += duration1
 
-    // 6. 안정의 역설
-    if (story.includes('안정') || story.includes('하나뿐') || story.includes('월급')) {
-      const duration = 6
+      // 5-2. 돈의 흐름을 보는 사람들
+      const duration2 = 4
       scenes.push({
         index: scenes.length + 1,
-        description: '안정적인 삶을 원하지만, 수입이 하나뿐인 상태가 가장 불안정할 수 있다. 회사 하나, 월급 하나에 모든 걸 맡긴 삶은 쉽게 흔들린다.',
-        visualElements: '한 줄로 연결된 수입원, 위태로운 균형, 흔들리는 모습, 불안한 표정, 위험 신호',
-        duration: duration,
+        description: '돈이 되는 사람들은 돈의 흐름을 본다. 돈은 관심을 주지 않는 사람 곁에 머물지 않는다.',
+        visualElements: '돈의 흐름 화살표, 관찰하는 사람, 분석하는 모습, 밝아지는 표정',
+        duration: duration2,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration2,
+        sceneType: '핵심 깨달음'
+      })
+      currentTime += duration2
+    }
+
+    // 6-1. 안정의 역설
+    if (story.includes('안정') || story.includes('하나뿐') || story.includes('월급')) {
+      const duration1 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '안정적인 삶을 원하지만, 수입이 하나뿐인 상태가 가장 불안정할 수 있다.',
+        visualElements: '한 줄로 연결된 수입원, 위태로운 균형, 불안한 표정',
+        duration: duration1,
+        startTime: currentTime,
+        endTime: currentTime + duration1,
         sceneType: '위험 인식'
       })
-      currentTime += duration
-    }
+      currentTime += duration1
 
-    // 7. 해결책 / 방향 전환
-    if (story.includes('벗어나는') || story.includes('달라지고') || story.includes('방향')) {
-      const duration = 8
+      // 6-2. 쉽게 흔들리는 삶
+      const duration2 = 4
       scenes.push({
         index: scenes.length + 1,
-        description: '가난에서 벗어나는 사람들의 특징. 시간을 쓰는 방식이 달라지고, 돈이 되는 경험을 만들고, 한 번 한 일을 여러 번 쓰고, 작은 수입을 하나씩 늘려간다.',
-        visualElements: '여러 개의 수입 파이프라인, 자산을 만드는 모습, 성장하는 그래프, 희망적인 분위기, 밝은 미래',
-        duration: duration,
+        description: '회사 하나, 월급 하나에 모든 걸 맡긴 삶은 쉽게 흔들린다.',
+        visualElements: '흔들리는 모습, 위험 신호, 깨지는 안전망',
+        duration: duration2,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration2,
+        sceneType: '위험 인식'
+      })
+      currentTime += duration2
+    }
+
+    // 7-1. 시간 사용 방식의 변화
+    if (story.includes('벗어나는') || story.includes('달라지고') || story.includes('방향')) {
+      const duration1 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '가난에서 벗어나는 사람들의 특징. 시간을 쓰는 방식이 달라지고, 돈이 되는 경험을 만든다.',
+        visualElements: '시간 활용의 변화, 새로운 접근, 밝은 분위기',
+        duration: duration1,
+        startTime: currentTime,
+        endTime: currentTime + duration1,
         sceneType: '해결책'
       })
-      currentTime += duration
-    }
+      currentTime += duration1
 
-    // 8. 위로와 메시지
-    if (story.includes('잘못') || story.includes('부족') || story.includes('질문')) {
-      const duration = 7
+      // 7-2. 자산 축적의 시작
+      const duration2 = 5
       scenes.push({
         index: scenes.length + 1,
-        description: '당신이 힘든 이유는 부족해서도 뒤처져서도 아니다. 열심히 사는 법만 배웠지 구조는 배운 적이 없었을 뿐이다. 이건 당신 잘못이 아니다. 마지막 질문: 지금의 노력은 나를 어디로 데려가는가?',
-        visualElements: '위로하는 손길, 따뜻한 빛, 질문 텍스트, 희망의 길, 새로운 방향, 긍정적인 결말',
-        duration: duration,
+        description: '한 번 한 일을 여러 번 쓰고, 작은 수입을 하나씩 늘려간다.',
+        visualElements: '여러 개의 수입 파이프라인, 자산을 만드는 모습, 성장하는 그래프, 희망적인 분위기',
+        duration: duration2,
         startTime: currentTime,
-        endTime: currentTime + duration,
+        endTime: currentTime + duration2,
+        sceneType: '해결책'
+      })
+      currentTime += duration2
+    }
+
+    // 8-1. 위로의 메시지
+    if (story.includes('잘못') || story.includes('부족') || story.includes('질문')) {
+      const duration1 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '당신이 힘든 이유는 부족해서도 뒤처져서도 아니다.',
+        visualElements: '위로하는 손길, 따뜻한 빛, 긍정적인 분위기',
+        duration: duration1,
+        startTime: currentTime,
+        endTime: currentTime + duration1,
         sceneType: '위로/메시지'
       })
-      currentTime += duration
+      currentTime += duration1
+
+      // 8-2. 구조에 대한 이해
+      const duration2 = 4
+      scenes.push({
+        index: scenes.length + 1,
+        description: '열심히 사는 법만 배웠지 구조는 배운 적이 없었을 뿐이다. 이건 당신 잘못이 아니다.',
+        visualElements: '깨달음의 순간, 새로운 시각, 안도하는 표정',
+        duration: duration2,
+        startTime: currentTime,
+        endTime: currentTime + duration2,
+        sceneType: '위로/메시지'
+      })
+      currentTime += duration2
+
+      // 8-3. 마지막 질문
+      const duration3 = 5
+      scenes.push({
+        index: scenes.length + 1,
+        description: '마지막 질문: 지금의 노력은 나를 어디로 데려가는가?',
+        visualElements: '질문 텍스트, 희망의 길, 새로운 방향, 긍정적인 결말, 밝은 미래',
+        duration: duration3,
+        startTime: currentTime,
+        endTime: currentTime + duration3,
+        sceneType: '위로/메시지'
+      })
+      currentTime += duration3
     }
 
     // 만약 장면이 하나도 생성되지 않았다면 전체를 분석
@@ -577,12 +699,80 @@ app.post('/api/generate-scene-image', async (c) => {
       return c.json({ success: false, error: '필수 파라미터가 누락되었습니다' })
     }
 
-    // Cloudflare Workers에서는 직접 이미지 생성 불가
-    // 실제로는 외부 API를 호출하거나 사용자가 수동으로 생성해야 함
-    return c.json({ 
-      success: false, 
-      error: 'Cloudflare Workers 환경에서는 직접 이미지 생성이 불가능합니다. 터미널에서 create_agent 도구를 사용하세요.'
+    // 환경 변수에서 API 키 가져오기
+    const apiKey = c.env?.GOOGLE_AI_API_KEY
+    if (!apiKey) {
+      return c.json({ 
+        success: false, 
+        error: 'Google AI API 키가 설정되지 않았습니다. .dev.vars 파일을 확인하세요.'
+      })
+    }
+
+    // Google Gemini Nano Banana Pro API 호출
+    const modelName = 'gemini-3-pro-image-preview'
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.8,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192
+        }
+      })
     })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('API Error:', errorData)
+      return c.json({ 
+        success: false, 
+        error: `이미지 생성 실패: ${response.status} ${response.statusText}`,
+        details: errorData
+      })
+    }
+
+    const data = await response.json()
+    
+    // 생성된 이미지 데이터 추출
+    if (data.candidates && data.candidates.length > 0) {
+      const parts = data.candidates[0].content.parts
+      
+      for (const part of parts) {
+        if (part.inlineData && part.inlineData.data) {
+          // Base64 인코딩된 이미지 데이터
+          const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+          
+          return c.json({ 
+            success: true, 
+            imageUrl: imageUrl,
+            index: index
+          })
+        }
+      }
+      
+      return c.json({ 
+        success: false, 
+        error: '이미지 데이터를 찾을 수 없습니다.'
+      })
+    } else {
+      return c.json({ 
+        success: false, 
+        error: '이미지 생성 결과가 없습니다.',
+        response: data
+      })
+    }
     
   } catch (error) {
     console.error('Image generation error:', error)
