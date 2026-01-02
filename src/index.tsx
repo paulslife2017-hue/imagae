@@ -530,7 +530,7 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                 }
 
                 const scene = sceneList[index];
-                const progressCard = document.getElementById(\`progress-\${index}\`);
+                const progressCard = document.getElementById('progress-' + index);
                 
                 if (!progressCard) {
                     alert('진행 상황 카드를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
@@ -712,7 +712,7 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                         throw new Error(data.error || '생성 실패');
                     }
                 } catch (error) {
-                    thumbnailStatus.innerHTML = \`<i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>실패: \${error.message}\`;
+                    thumbnailStatus.innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>실패: ' + error.message;
                 }
             }
         </script>
