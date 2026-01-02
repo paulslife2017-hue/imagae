@@ -56,10 +56,17 @@ app.get('/', (c) => {
                 </h2>
                 <div class="mb-4">
                     <label class="block text-gray-700 font-semibold mb-2">영상 제목:</label>
-                    <input type="text" id="videoTitle" 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="예: 가난에서 벗어나는 사람들의 비밀"
-                           value="가난에서 벗어나는 사람들의 비밀">
+                    <div class="flex gap-2">
+                        <input type="text" id="videoTitle" 
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="예: 성공하는 사람들의 아침 루틴"
+                               value="가난에서 벗어나는 사람들의 비밀">
+                        <button onclick="recommendTitle()" 
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow transition">
+                            <i class="fas fa-lightbulb mr-2"></i>제목 추천
+                        </button>
+                    </div>
+                    <div id="titleRecommendations" class="mt-2 space-y-2 hidden"></div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 font-semibold mb-2">스토리 전체를 입력하세요:</label>
@@ -126,6 +133,11 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                         <i class="fas fa-check-circle mr-2 text-green-600"></i>
                         생성 완료
                     </h2>
+                    <button onclick="downloadAllImages()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-300">
+                        <i class="fas fa-download mr-2"></i>
+                        전체 다운로드 (ZIP)
+                    </button>
                 </div>
                 <div id="completedGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
@@ -223,46 +235,42 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                     
                     const sceneCard = document.createElement('div');
                     sceneCard.className = 'border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg';
-                    sceneCard.innerHTML = \`
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="font-semibold text-gray-800">씬 \${index + 1}</span>
-                                <span class="ml-2 text-xs bg-indigo-600 text-white px-2 py-1 rounded">\${scene.sceneType || '장면'}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="text-xs bg-blue-600 text-white px-2 py-1 rounded">
-                                    <i class="fas fa-clock mr-1"></i>\${scene.duration}초
-                                </span>
-                                <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded">
-                                    <i class="fas fa-video mr-1"></i>\${scene.startTime}s - \${scene.endTime}s
-                                </span>
-                            </div>
-                        </div>
-                        <p class="text-gray-700 mb-2 font-medium">\${scene.description}</p>
-                        <div class="text-xs text-gray-500 bg-white p-2 rounded">
-                            <strong>시각적 요소:</strong> \${scene.visualElements}
-                        </div>
-                    \`;
+                    sceneCard.innerHTML = '<div class="flex justify-between items-start mb-2">' +
+                            '<div>' +
+                                '<span class="font-semibold text-gray-800">씬 ' + (index + 1) + '</span>' +
+                                '<span class="ml-2 text-xs bg-indigo-600 text-white px-2 py-1 rounded">' + (scene.sceneType || '장면') + '</span>' +
+                            '</div>' +
+                            '<div class="flex gap-2">' +
+                                '<span class="text-xs bg-blue-600 text-white px-2 py-1 rounded">' +
+                                    '<i class="fas fa-clock mr-1"></i>' + scene.duration + '초' +
+                                '</span>' +
+                                '<span class="text-xs bg-purple-600 text-white px-2 py-1 rounded">' +
+                                    '<i class="fas fa-video mr-1"></i>' + scene.startTime + 's - ' + scene.endTime + 's' +
+                                '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<p class="text-gray-700 mb-2 font-medium">' + scene.description + '</p>' +
+                        '<div class="text-xs text-gray-500 bg-white p-2 rounded">' +
+                            '<strong>시각적 요소:</strong> ' + scene.visualElements +
+                        '</div>';
                     sceneListEl.appendChild(sceneCard);
                 });
 
                 // 요약 정보 추가
                 const summary = document.createElement('div');
                 summary.className = 'mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg';
-                summary.innerHTML = \`
-                    <div class="flex items-center justify-between">
-                        <div><i class="fas fa-check-circle text-green-600 mr-2"></i>
-                        <strong>총 \${sceneList.length}개 씬 분석 완료</strong></div>
-                        <div class="text-green-800">
-                        예상 총 영상 길이: \${totalDuration}초 (\${Math.floor(totalDuration / 60)}분 \${totalDuration % 60}초)
-                        </div>
-                    </div>
-                \`;
+                summary.innerHTML = '<div class="flex items-center justify-between">' +
+                        '<div><i class="fas fa-check-circle text-green-600 mr-2"></i>' +
+                        '<strong>총 ' + sceneList.length + '개 씬 분석 완료</strong></div>' +
+                        '<div class="text-green-800">' +
+                        '예상 총 영상 길이: ' + totalDuration + '초 (' + Math.floor(totalDuration / 60) + '분 ' + (totalDuration % 60) + '초)' +
+                        '</div>' +
+                    '</div>';
                 sceneListEl.appendChild(summary);
             }
 
             async function startImageGeneration() {
-                if (!confirm(\`총 \${sceneList.length}개 이미지를 생성합니다. 각 이미지당 약 2-3분 소요됩니다.\\n\\n계속하시겠습니까?\`)) {
+                if (!confirm('총 ' + sceneList.length + '개 이미지를 생성합니다. 각 이미지당 약 2-3분 소요됩니다.\\n\\n계속하시겠습니까?')) {
                     return;
                 }
 
@@ -280,32 +288,30 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                 // 진행 상황 카드 생성
                 sceneList.forEach((scene, index) => {
                     const progressCard = document.createElement('div');
-                    progressCard.id = \`progress-\${index}\`;
+                    progressCard.id = 'progress-' + index;
                     progressCard.className = 'border border-gray-200 rounded-lg p-4 bg-white';
-                    progressCard.innerHTML = \`
-                        <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0">
-                                <div id="status-icon-\${index}" class="w-16 h-16 flex items-center justify-center">
-                                    <div class="w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div class="font-semibold text-gray-800">씬 \${index + 1}</div>
-                                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                        \${scene.duration}초
-                                    </span>
-                                </div>
-                                <p class="text-sm text-gray-600 mb-2">\${scene.description}</p>
-                                <div id="status-text-\${index}" class="text-sm text-gray-500">
-                                    <i class="fas fa-hourglass-start mr-1"></i>대기 중...
-                                </div>
-                                <div id="image-preview-\${index}" class="mt-3 hidden">
-                                    <img src="" alt="Generated" class="w-full rounded-lg shadow-md">
-                                </div>
-                            </div>
-                        </div>
-                    \`;
+                    progressCard.innerHTML = '<div class="flex items-start gap-4">' +
+                            '<div class="flex-shrink-0">' +
+                                '<div id="status-icon-' + index + '" class="w-16 h-16 flex items-center justify-center">' +
+                                    '<div class="w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="flex-1">' +
+                                '<div class="flex justify-between items-start mb-2">' +
+                                    '<div class="font-semibold text-gray-800">씬 ' + (index + 1) + '</div>' +
+                                    '<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">' +
+                                        scene.duration + '초' +
+                                    '</span>' +
+                                '</div>' +
+                                '<p class="text-sm text-gray-600 mb-2">' + scene.description + '</p>' +
+                                '<div id="status-text-' + index + '" class="text-sm text-gray-500">' +
+                                    '<i class="fas fa-hourglass-start mr-1"></i>대기 중...' +
+                                '</div>' +
+                                '<div id="image-preview-' + index + '" class="mt-3 hidden">' +
+                                    '<img src="" alt="Generated" class="w-full rounded-lg shadow-md">' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
                     progressList.appendChild(progressCard);
                 });
 
@@ -320,28 +326,14 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
 
             async function generateSceneImage(index) {
                 const scene = sceneList[index];
-                const statusIcon = document.getElementById(\`status-icon-\${index}\`);
-                const statusText = document.getElementById(\`status-text-\${index}\`);
-                const imagePreview = document.getElementById(\`image-preview-\${index}\`);
+                const statusIcon = document.getElementById('status-icon-' + index);
+                const statusText = document.getElementById('status-text-' + index);
+                const imagePreview = document.getElementById('image-preview-' + index);
 
                 try {
                     statusText.innerHTML = '<i class="fas fa-magic mr-1 text-purple-600"></i>AI가 이미지를 생성하고 있습니다... (2-3분 소요)';
 
-                    const prompt = \`\${STYLE_PROMPT}
-
-Reference Image: \${REFERENCE_IMAGE}
-(Please analyze and replicate the visual style from this reference image)
-
-Scene Description: \${scene.description}
-Visual Elements: \${scene.visualElements}
-Duration: \${scene.duration} seconds
-Timeline: \${scene.startTime}s - \${scene.endTime}s
-
-Create an educational illustration that visually represents this scene. 
-The image should be engaging, clear, and suitable as a YouTube video background.
-Maintain consistent visual language with warm, inviting colors and clear composition.
-Aspect ratio: 16:9 for YouTube compatibility.
-Use Nano Banana Pro model for best quality.\`;
+                    const prompt = STYLE_PROMPT + '\n\nReference Image: ' + REFERENCE_IMAGE + '\n(Please analyze and replicate the visual style from this reference image)\n\nScene Description: ' + scene.description + '\nVisual Elements: ' + scene.visualElements + '\nDuration: ' + scene.duration + ' seconds\nTimeline: ' + scene.startTime + 's - ' + scene.endTime + 's\n\nCreate an educational illustration that visually represents this scene. \nThe image should be engaging, clear, and suitable as a YouTube video background.\nMaintain consistent visual language with warm, inviting colors and clear composition.\nAspect ratio: 16:9 for YouTube compatibility.\nUse Nano Banana Pro model for best quality.';
 
                     const response = await fetch('/api/generate-scene-image', {
                         method: 'POST',
@@ -375,7 +367,7 @@ Use Nano Banana Pro model for best quality.\`;
                     }
                 } catch (error) {
                     statusIcon.innerHTML = '<i class="fas fa-times-circle text-red-600 text-5xl"></i>';
-                    statusText.innerHTML = \`<i class="fas fa-exclamation-triangle mr-1 text-red-600"></i>실패: \${error.message}\`;
+                    statusText.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-600"></i>실패: ' + error.message;
                 }
             }
 
@@ -390,41 +382,37 @@ Use Nano Banana Pro model for best quality.\`;
                 generatedImages.forEach((item) => {
                     const card = document.createElement('div');
                     card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition';
-                    card.innerHTML = \`
-                        <img src="\${item.imageUrl}" alt="Scene \${item.index + 1}" class="w-full h-48 object-cover">
-                        <div class="p-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="font-semibold text-gray-800">씬 \${item.index + 1}</div>
-                                <div class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    <i class="fas fa-clock mr-1"></i>\${item.scene.duration}초
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-600 mb-3">\${item.scene.description.substring(0, 80)}\${item.scene.description.length > 80 ? '...' : ''}</p>
-                            <div class="flex gap-2">
-                                <a href="\${item.imageUrl}" download="scene_\${String(item.index + 1).padStart(2, '0')}.png" 
-                                   class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition">
-                                    <i class="fas fa-download mr-1"></i>다운로드
-                                </a>
-                                <button onclick="regenerateImage(\${item.index})" 
-                                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded transition">
-                                    <i class="fas fa-redo mr-1"></i>재생성
-                                </button>
-                            </div>
-                        </div>
-                    \`;
+                    card.innerHTML = '<img src="' + item.imageUrl + '" alt="Scene ' + (item.index + 1) + '" class="w-full h-48 object-cover">' +
+                        '<div class="p-4">' +
+                            '<div class="flex justify-between items-center mb-2">' +
+                                '<div class="font-semibold text-gray-800">씬 ' + (item.index + 1) + '</div>' +
+                                '<div class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">' +
+                                    '<i class="fas fa-clock mr-1"></i>' + item.scene.duration + '초' +
+                                '</div>' +
+                            '</div>' +
+                            '<p class="text-sm text-gray-600 mb-3">' + item.scene.description.substring(0, 80) + (item.scene.description.length > 80 ? '...' : '') + '</p>' +
+                            '<div class="flex gap-2">' +
+                                '<a href="' + item.imageUrl + '" download="scene_' + String(item.index + 1).padStart(2, '0') + '.png" ' +
+                                   'class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition">' +
+                                    '<i class="fas fa-download mr-1"></i>다운로드' +
+                                '</a>' +
+                                '<button onclick="regenerateImage(' + item.index + ')" ' +
+                                        'class="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded transition">' +
+                                    '<i class="fas fa-redo mr-1"></i>재생성' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>';
                     completedGrid.appendChild(card);
                 });
 
                 // 썸네일 생성 버튼 추가
                 const thumbnailSection = document.createElement('div');
                 thumbnailSection.className = 'col-span-full mt-6 text-center';
-                thumbnailSection.innerHTML = \`
-                    <button onclick="generateThumbnail()" 
-                            class="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
-                        <i class="fas fa-image mr-2"></i>썸네일 생성하기
-                    </button>
-                    <p class="text-sm text-gray-600 mt-2">영상 제목을 기반으로 매력적인 썸네일을 생성합니다</p>
-                \`;
+                thumbnailSection.innerHTML = '<button onclick="generateThumbnail()" ' +
+                            'class="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">' +
+                        '<i class="fas fa-image mr-2"></i>썸네일 생성하기' +
+                    '</button>' +
+                    '<p class="text-sm text-gray-600 mt-2">영상 제목을 기반으로 매력적인 썸네일을 생성합니다</p>';
                 completedGrid.appendChild(thumbnailSection);
             }
 
@@ -442,7 +430,7 @@ Use Nano Banana Pro model for best quality.\`;
             }
 
             async function regenerateImage(index) {
-                if (!confirm(\`씬 \${index + 1}의 이미지를 다시 생성하시겠습니까? (약 2-3분 소요)\`)) {
+                if (!confirm('씬 ' + (index + 1) + '의 이미지를 다시 생성하시겠습니까? (약 2-3분 소요)')) {
                     return;
                 }
 
@@ -466,6 +454,117 @@ Use Nano Banana Pro model for best quality.\`;
                 displayCompletedImages();
             }
 
+            async function downloadAllImages() {
+                if (generatedImages.length === 0) {
+                    alert('다운로드할 이미지가 없습니다!');
+                    return;
+                }
+
+                if (!confirm('총 ' + generatedImages.length + '개 이미지를 ZIP 파일로 다운로드하시겠습니까?')) {
+                    return;
+                }
+
+                try {
+                    // JSZip 라이브러리를 동적으로 로드
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+                    document.head.appendChild(script);
+
+                    await new Promise(resolve => {
+                        script.onload = resolve;
+                    });
+
+                    const zip = new JSZip();
+                    const folder = zip.folder('youtube_scenes');
+
+                    // 상태 표시
+                    const statusDiv = document.createElement('div');
+                    statusDiv.className = 'fixed top-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>ZIP 파일 생성 중...';
+                    document.body.appendChild(statusDiv);
+
+                    // 각 이미지를 ZIP에 추가
+                    for (let i = 0; i < generatedImages.length; i++) {
+                        const item = generatedImages[i];
+                        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>이미지 추가 중... (' + (i + 1) + '/' + generatedImages.length + ')';
+                        
+                        try {
+                            // Data URL을 Blob으로 변환
+                            const response = await fetch(item.imageUrl);
+                            const blob = await response.blob();
+                            
+                            // 파일명: scene_01.png, scene_02.png, ...
+                            const filename = 'scene_' + String(i + 1).padStart(2, '0') + '.png';
+                            folder.file(filename, blob);
+                        } catch (error) {
+                            console.error('이미지 ' + (i + 1) + ' 추가 실패:', error);
+                        }
+                    }
+
+                    statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>ZIP 파일 압축 중...';
+
+                    // ZIP 파일 생성 및 다운로드
+                    const content = await zip.generateAsync({ type: 'blob' });
+                    const url = URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'youtube_scenes_' + new Date().getTime() + '.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>다운로드 완료!';
+                    setTimeout(() => {
+                        document.body.removeChild(statusDiv);
+                    }, 2000);
+
+                } catch (error) {
+                    alert('ZIP 파일 생성 중 오류 발생: ' + error.message);
+                }
+            }
+
+            async function recommendTitle() {
+                const storyText = document.getElementById('storyText').value.trim();
+                if (!storyText) {
+                    alert('먼저 스토리 내용을 입력해주세요!');
+                    return;
+                }
+
+                const recommendationsDiv = document.getElementById('titleRecommendations');
+                recommendationsDiv.innerHTML = '<div class="text-center py-2"><i class="fas fa-spinner fa-spin text-blue-600"></i> AI가 제목을 추천하고 있습니다...</div>';
+                recommendationsDiv.classList.remove('hidden');
+
+                try {
+                    const response = await fetch('/api/recommend-title', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ story: storyText })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        recommendationsDiv.innerHTML = '';
+                        
+                        data.titles.forEach((title, index) => {
+                            const titleCard = document.createElement('div');
+                            titleCard.className = 'flex items-center gap-2 p-2 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50 cursor-pointer transition';
+                            titleCard.onclick = () => {
+                                document.getElementById('videoTitle').value = title;
+                                recommendationsDiv.classList.add('hidden');
+                            };
+                            titleCard.innerHTML = '<i class="fas fa-star text-yellow-500"></i>' +
+                                '<span class="flex-1 text-gray-800">' + title + '</span>' +
+                                '<i class="fas fa-chevron-right text-gray-400"></i>';
+                            recommendationsDiv.appendChild(titleCard);
+                        });
+                    } else {
+                        throw new Error(data.error || '제목 추천 실패');
+                    }
+                } catch (error) {
+                    recommendationsDiv.innerHTML = '<div class="text-red-600 text-sm"><i class="fas fa-exclamation-triangle mr-1"></i>' + error.message + '</div>';
+                }
+            }
+
             async function generateThumbnail() {
                 const videoTitle = document.getElementById('videoTitle').value.trim();
                 if (!videoTitle) {
@@ -473,7 +572,7 @@ Use Nano Banana Pro model for best quality.\`;
                     return;
                 }
 
-                if (!confirm(\`"\${videoTitle}" 제목으로 썸네일을 생성하시겠습니까? (약 2-3분 소요)\`)) {
+                if (!confirm('"' + videoTitle + '" 제목으로 썸네일을 생성하시겠습니까? (약 2-3분 소요)')) {
                     return;
                 }
 
@@ -491,19 +590,7 @@ Use Nano Banana Pro model for best quality.\`;
                 thumbnailDownload.classList.add('hidden');
 
                 try {
-                    const prompt = \`\${STYLE_PROMPT}
-
-Reference Image: \${REFERENCE_IMAGE}
-(Please analyze and replicate the visual style from this reference image)
-
-Title: \${videoTitle}
-
-Create an eye-catching YouTube thumbnail that represents this video title. 
-The thumbnail should be visually striking, professional, and engaging.
-Include bold, readable text if needed to emphasize the main message.
-Use contrasting colors to make the thumbnail stand out.
-Aspect ratio: 16:9 for YouTube compatibility.
-Make it click-worthy and attention-grabbing!\`;
+                    const prompt = STYLE_PROMPT + '\n\nReference Image: ' + REFERENCE_IMAGE + '\n(Please analyze and replicate the visual style from this reference image)\n\nTitle: ' + videoTitle + '\n\nCreate an eye-catching YouTube thumbnail that represents this video title. \nThe thumbnail should be visually striking, professional, and engaging.\nInclude bold, readable text if needed to emphasize the main message.\nUse contrasting colors to make the thumbnail stand out.\nAspect ratio: 16:9 for YouTube compatibility.\nMake it click-worthy and attention-grabbing!';
 
                     const response = await fetch('/api/generate-scene-image', {
                         method: 'POST',
@@ -537,6 +624,124 @@ Make it click-worthy and attention-grabbing!\`;
     </body>
     </html>
   `)
+})
+
+// 제목 추천 API
+app.post('/api/recommend-title', async (c) => {
+  try {
+    const { story } = await c.req.json()
+    
+    if (!story) {
+      return c.json({ success: false, error: '스토리가 비어있습니다' })
+    }
+
+    // 환경 변수에서 API 키 가져오기
+    const apiKey = c.env?.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY
+    if (!apiKey) {
+      return c.json({ 
+        success: false, 
+        error: 'Google AI API 키가 설정되지 않았습니다.'
+      })
+    }
+
+    // Google Gemini API로 제목 추천 요청
+    const modelName = 'gemini-2.0-flash-exp'
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`
+    
+    const prompt = `다음 스토리를 읽고, 매력적이고 클릭을 유도하는 YouTube 영상 제목 5개를 추천해주세요.
+
+스토리:
+${story}
+
+요구사항:
+1. 짧고 임팩트있게 (10-15자 이내)
+2. 호기심을 자극하는 제목
+3. 감정을 자극하는 단어 사용
+4. 숫자나 리스트 활용 가능
+5. 질문형 또는 단언형 모두 가능
+
+JSON 형식으로만 응답하세요:
+{
+  "titles": [
+    "제목 1",
+    "제목 2",
+    "제목 3",
+    "제목 4",
+    "제목 5"
+  ]
+}`
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.9,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('API Error:', errorData)
+      return c.json({ 
+        success: false, 
+        error: `제목 추천 실패: ${response.status} ${response.statusText}`
+      })
+    }
+
+    const data = await response.json()
+    
+    if (data.candidates && data.candidates.length > 0) {
+      const text = data.candidates[0].content.parts[0].text
+      
+      // JSON 파싱 시도
+      try {
+        // JSON 형식 추출 (코드 블록이 있을 수 있음)
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          const jsonData = JSON.parse(jsonMatch[0])
+          return c.json({ 
+            success: true, 
+            titles: jsonData.titles || []
+          })
+        }
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError)
+      }
+      
+      // JSON 파싱 실패 시 텍스트에서 제목 추출
+      const lines = text.split('\n').filter(line => line.trim() && !line.includes('{') && !line.includes('}'))
+      const titles = lines
+        .map(line => line.replace(/^[\d\-\.\*\s"]+/, '').replace(/["]+$/, '').trim())
+        .filter(line => line.length > 0 && line.length < 50)
+        .slice(0, 5)
+      
+      return c.json({ 
+        success: true, 
+        titles: titles
+      })
+    } else {
+      return c.json({ 
+        success: false, 
+        error: '제목 추천 결과가 없습니다.'
+      })
+    }
+    
+  } catch (error) {
+    console.error('Title recommendation error:', error)
+    return c.json({ success: false, error: error.message })
+  }
 })
 
 // 씬 분석 API
