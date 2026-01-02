@@ -1,0 +1,9 @@
+[
+  {
+    "index": 1,
+    "paragraph": "1974년, 미국 한 대학교의 강연장에 레이 A. 크록(Ray A. Kroc)이 연설을 하고 있습니다.",
+    "estimatedDuration": 5,
+    "prompt": "Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.\n\nReference Image: https://www.genspark.ai/api/files/s/57W955Hh\n(Please analyze and replicate the visual style from this reference image)\n\nKorean Content: 1974년, 미국 한 대학교의 강연장에 레이 A. 크록(Ray A. Kroc)이 연설을 하고 있습니다.\n\nCreate an educational illustration that visually represents this Korean text content. The image should be engaging, clear, and suitable as a YouTube video background for approximately 5 seconds of narration. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility. Use Nano Banana Pro model for best quality.",
+    "outputFilename": "youtube_bg_01.png"
+  }
+]

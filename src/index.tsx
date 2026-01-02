@@ -64,7 +64,7 @@ app.get('/', (c) => {
                 </div>
                 <div class="flex gap-4">
                     <button onclick="generatePrompts()" 
-                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
+                            class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                         <i class="fas fa-magic mr-2"></i>
                         프롬프트 생성
                     </button>
