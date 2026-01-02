@@ -55,17 +55,17 @@ app.get('/', (c) => {
                     문단 입력
                 </h2>
                 <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">영상 제목:</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="videoTitle" 
-                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="예: 성공하는 사람들의 아침 루틴"
-                               value="가난에서 벗어나는 사람들의 비밀">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-gray-700 font-semibold">영상 제목:</label>
                         <button onclick="recommendTitle()" 
-                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow transition">
-                            <i class="fas fa-lightbulb mr-2"></i>제목 추천
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1 px-3 rounded-lg shadow transition text-sm">
+                            <i class="fas fa-lightbulb mr-1"></i>AI 제목 추천
                         </button>
                     </div>
+                    <input type="text" id="videoTitle" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="예: 성공하는 사람들의 아침 루틴"
+                           value="가난에서 벗어나는 사람들의 비밀">
                     <div id="titleRecommendations" class="mt-2 space-y-2 hidden"></div>
                 </div>
                 <div class="mb-4">
