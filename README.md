@@ -194,25 +194,48 @@ GOOGLE_AI_API_KEY=your_google_ai_api_key_here
 - 새로고침하면 진행 상황이 초기화됩니다
 - Base64 이미지 데이터는 메모리에 저장됩니다
 
-## 🔧 개발 명령어
+## 🔧 로컬 서버 실행 방법
+
+### 방법 1: Node.js 로컬 서버 (추천)
 
 ```bash
-# 개발 서버 시작 (샌드박스)
-npm run dev:sandbox
+# 1. 저장소 클론
+git clone https://github.com/paulslife2017-hue/imagae.git
+cd imagae
 
-# 빌드
+# 2. 의존성 설치
+npm install
+
+# 3. 환경 변수 설정
+# .dev.vars 파일 생성
+echo "GOOGLE_AI_API_KEY=your_api_key_here" > .dev.vars
+
+# 4. 빌드
 npm run build
 
-# PM2로 시작
+# 5. 로컬 서버 실행
+npm run dev:local
+# 또는
+npm start
+
+# 서버가 http://0.0.0.0:3000 에서 실행됩니다
+```
+
+### 방법 2: Cloudflare Workers 개발 서버
+
+```bash
+# 빌드 후 Wrangler로 실행
+npm run build
+npm run dev:sandbox
+
+# 또는 PM2로 백그라운드 실행
 pm2 start ecosystem.config.cjs
+```
 
-# PM2 재시작
-pm2 restart webapp
+### 방법 3: Cloudflare Pages 배포
 
-# 포트 정리
-npm run clean-port
-
-# 프로덕션 배포
+```bash
+# Cloudflare Pages에 배포
 npm run deploy:prod
 ```
 

@@ -840,7 +840,9 @@ app.post('/api/generate-scene-image', async (c) => {
     }
 
     // 환경 변수에서 API 키 가져오기
-    const apiKey = c.env?.GOOGLE_AI_API_KEY
+    // Cloudflare Workers: c.env?.GOOGLE_AI_API_KEY
+    // Node.js: process.env.GOOGLE_AI_API_KEY
+    const apiKey = c.env?.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY
     if (!apiKey) {
       return c.json({ 
         success: false, 
