@@ -403,68 +403,156 @@ app.post('/api/analyze-scenes', async (c) => {
       return c.json({ success: false, error: '스토리가 비어있습니다' })
     }
 
-    // 스토리 전체를 분석하여 의미 있는 장면 전환 지점만 찾기
+    // 스토리를 더 세밀하게 분석하여 의미 있는 장면 전환 찾기
     const scenes = []
     let currentTime = 0
 
-    // 예시 스토리를 기반으로 장면 분석
-    // 실제로는 더 정교한 AI 분석이 필요하지만, 여기서는 키워드 기반으로 장면 구분
+    // 핵심 키워드와 주제를 기반으로 장면 분석
+    const storyLower = story.toLowerCase()
     
-    // 1. 배경/설정 장면 (강연장 소개)
-    if (story.includes('강연장') || story.includes('대학교')) {
-      const duration = 5
+    // 1. 문제 제기 / 현실 인식 장면
+    if (story.includes('열심히') || story.includes('노력') || story.includes('제자리')) {
+      const duration = 6
       scenes.push({
-        index: 1,
-        description: '1974년 미국 대학교 강연장 전경. 레이 A. 크록이 연단 앞에 서 있고, 학생들이 자리에 앉아있는 모습.',
-        visualElements: '대학 강연장 전체 전경, 연단과 연사, 앉아있는 학생들, 벽돌 벽과 창문, 미국 국기, 1974년 분위기',
+        index: scenes.length + 1,
+        description: '열심히 살고 있는데 항상 돈이 없는 현실. 남들보다 덜 노력하는 것도 아닌데 왜 늘 제자리인가에 대한 고민.',
+        visualElements: '고민하는 사람, 지갑이 비어있는 모습, 반복되는 일상, 답답한 표정, 어두운 톤의 배경',
         duration: duration,
         startTime: currentTime,
         endTime: currentTime + duration,
-        sceneType: '배경 설정'
+        sceneType: '문제 제기'
       })
       currentTime += duration
     }
 
-    // 2. 연사의 연설 장면 (클로즈업/중점 장면)
-    if (story.includes('연설') || story.includes('이야기') || story.includes('성공')) {
+    // 2. 어린 시절 / 가르침 장면
+    if (story.includes('어릴 때') || story.includes('성실') || story.includes('들어왔다')) {
+      const duration = 5
+      scenes.push({
+        index: scenes.length + 1,
+        description: '어릴 때부터 들어온 말들. "성실하면 잘 된다", "열심히 하면 보상받는다". 많은 사람들이 불평하지 않고 참고 버티는 모습.',
+        visualElements: '어린 시절 회상, 선생님이나 부모의 가르침, 참고 일하는 사람들, 희망적이지만 순진한 분위기',
+        duration: duration,
+        startTime: currentTime,
+        endTime: currentTime + duration,
+        sceneType: '배경/가치관'
+      })
+      currentTime += duration
+    }
+
+    // 3. 구조적 문제 인식
+    if (story.includes('구조') || story.includes('시간을 써서')) {
       const duration = 7
       scenes.push({
-        index: 2,
-        description: '레이 크록이 열정적으로 연설하는 모습. "성공의 비결은 끈기와 비전입니다"라는 메시지를 전달하고 있다. 칠판에 핵심 메시지가 적혀있다.',
-        visualElements: '연사 크록의 클로즈업, 제스처와 표정, 칠판에 적힌 "끈기와 비전" 텍스트, 강조된 분위기, 영감을 주는 순간',
+        index: scenes.length + 1,
+        description: '개인의 문제가 아닌 구조의 문제. 대부분의 사람은 시간을 써서 돈을 벌고, 일한 만큼 받고, 쉬면 수입이 멈춘다.',
+        visualElements: '시계와 돈의 교환, 톱니바퀴 시스템, 쳇바퀴 돌리는 모습, 멈추지 못하는 사람, 시스템 다이어그램',
         duration: duration,
         startTime: currentTime,
         endTime: currentTime + duration,
-        sceneType: '핵심 메시지'
+        sceneType: '핵심 문제'
       })
       currentTime += duration
     }
 
-    // 3. 청중의 반응 장면 (학생들의 반응)
-    if (story.includes('경청') || story.includes('메모') || story.includes('학생')) {
-      const duration = 5
+    // 4. 절약의 한계
+    if (story.includes('아끼') || story.includes('커피') || story.includes('참고')) {
+      const duration = 6
       scenes.push({
-        index: 3,
-        description: '학생들이 크록의 강연에 집중하며 열심히 메모를 하는 모습. 진지하고 영감받은 표정들.',
-        visualElements: '학생들의 집중된 표정, 노트에 필기하는 손, 다양한 각도의 학생 얼굴들, 경청하는 자세, 긍정적인 분위기',
+        index: scenes.length + 1,
+        description: '돈이 없을수록 더 아끼려 한다. 커피를 줄이고, 사고 싶은 걸 참고, 하고 싶은 걸 미룬다. 하지만 이것만으로는 바뀌지 않는다.',
+        visualElements: '계산기, 가계부, 절약하는 모습, 참는 표정, 답답한 분위기, 한계를 느끼는 손동작',
         duration: duration,
         startTime: currentTime,
         endTime: currentTime + duration,
-        sceneType: '반응/결말'
+        sceneType: '잘못된 접근'
       })
       currentTime += duration
     }
 
-    // 만약 장면이 하나도 생성되지 않았다면 전체를 하나의 장면으로
+    // 5. 돈의 흐름 이해
+    if (story.includes('흘러가') || story.includes('관심')) {
+      const duration = 7
+      scenes.push({
+        index: scenes.length + 1,
+        description: '아낄 수 있는 돈에는 한계가 있지만 벌 수 있는 돈에는 한계가 없다. 돈이 되는 사람들은 돈의 흐름을 본다. 돈은 관심을 주지 않는 사람 곁에 머물지 않는다.',
+        visualElements: '돈의 흐름 화살표, 관찰하는 사람, 분석하는 모습, 돈이 흘러가는 방향, 밝아지는 표정',
+        duration: duration,
+        startTime: currentTime,
+        endTime: currentTime + duration,
+        sceneType: '핵심 깨달음'
+      })
+      currentTime += duration
+    }
+
+    // 6. 안정의 역설
+    if (story.includes('안정') || story.includes('하나뿐') || story.includes('월급')) {
+      const duration = 6
+      scenes.push({
+        index: scenes.length + 1,
+        description: '안정적인 삶을 원하지만, 수입이 하나뿐인 상태가 가장 불안정할 수 있다. 회사 하나, 월급 하나에 모든 걸 맡긴 삶은 쉽게 흔들린다.',
+        visualElements: '한 줄로 연결된 수입원, 위태로운 균형, 흔들리는 모습, 불안한 표정, 위험 신호',
+        duration: duration,
+        startTime: currentTime,
+        endTime: currentTime + duration,
+        sceneType: '위험 인식'
+      })
+      currentTime += duration
+    }
+
+    // 7. 해결책 / 방향 전환
+    if (story.includes('벗어나는') || story.includes('달라지고') || story.includes('방향')) {
+      const duration = 8
+      scenes.push({
+        index: scenes.length + 1,
+        description: '가난에서 벗어나는 사람들의 특징. 시간을 쓰는 방식이 달라지고, 돈이 되는 경험을 만들고, 한 번 한 일을 여러 번 쓰고, 작은 수입을 하나씩 늘려간다.',
+        visualElements: '여러 개의 수입 파이프라인, 자산을 만드는 모습, 성장하는 그래프, 희망적인 분위기, 밝은 미래',
+        duration: duration,
+        startTime: currentTime,
+        endTime: currentTime + duration,
+        sceneType: '해결책'
+      })
+      currentTime += duration
+    }
+
+    // 8. 위로와 메시지
+    if (story.includes('잘못') || story.includes('부족') || story.includes('질문')) {
+      const duration = 7
+      scenes.push({
+        index: scenes.length + 1,
+        description: '당신이 힘든 이유는 부족해서도 뒤처져서도 아니다. 열심히 사는 법만 배웠지 구조는 배운 적이 없었을 뿐이다. 이건 당신 잘못이 아니다. 마지막 질문: 지금의 노력은 나를 어디로 데려가는가?',
+        visualElements: '위로하는 손길, 따뜻한 빛, 질문 텍스트, 희망의 길, 새로운 방향, 긍정적인 결말',
+        duration: duration,
+        startTime: currentTime,
+        endTime: currentTime + duration,
+        sceneType: '위로/메시지'
+      })
+      currentTime += duration
+    }
+
+    // 만약 장면이 하나도 생성되지 않았다면 전체를 분석
     if (scenes.length === 0) {
-      scenes.push({
-        index: 1,
-        description: story,
-        visualElements: '스토리 전체를 표현하는 일러스트레이션',
-        duration: 8,
-        startTime: 0,
-        endTime: 8,
-        sceneType: '전체 장면'
+      // 문단을 나눠서 처리
+      const paragraphs = story.split('\n\n').filter(p => p.trim())
+      
+      paragraphs.forEach((para, index) => {
+        const length = para.length
+        let duration = 5
+        if (length < 50) duration = 3
+        else if (length < 100) duration = 5
+        else if (length < 200) duration = 7
+        else duration = 10
+
+        scenes.push({
+          index: index + 1,
+          description: para.substring(0, 150) + (para.length > 150 ? '...' : ''),
+          visualElements: '스토리 내용을 시각화한 일러스트레이션',
+          duration: duration,
+          startTime: currentTime,
+          endTime: currentTime + duration,
+          sceneType: '일반 장면'
+        })
+        currentTime += duration
       })
     }
 
