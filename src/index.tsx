@@ -87,11 +87,18 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                         </div>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <button onclick="alert('✅ JavaScript가 정상 작동합니다! 이제 아래 보라색 버튼을 클릭하세요.')" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow transition">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        🧪 테스트: JavaScript 작동 확인 (먼저 클릭해보세요)
+                    </button>
+                </div>
                 <div class="flex gap-4">
                     <button id="analyzeButton" onclick="analyzeAndGenerate()" 
                             class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                         <i class="fas fa-magic mr-2"></i>
-                        AI 씬 분석 & 이미지 생성
+                        <span id="buttonText">AI 씬 분석 & 이미지 생성</span>
                     </button>
                     <button onclick="clearAll()" 
                             class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300">
@@ -99,6 +106,7 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                         초기화
                     </button>
                 </div>
+                <div id="buttonStatus" class="mt-2 text-sm text-center hidden"></div>
             </div>
 
             <!-- 씬 분석 결과 섹션 -->
@@ -212,11 +220,41 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
             async function analyzeAndGenerate() {
                 console.log('✅ analyzeAndGenerate 함수가 호출되었습니다!');
                 
+                // 버튼 상태 변경 (즉시 피드백)
+                const analyzeButton = document.getElementById('analyzeButton');
+                const buttonText = document.getElementById('buttonText');
+                const buttonStatus = document.getElementById('buttonStatus');
+                
+                if (analyzeButton) {
+                    analyzeButton.disabled = true;
+                    analyzeButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                
+                if (buttonText) {
+                    buttonText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>분석 중...';
+                }
+                
+                if (buttonStatus) {
+                    buttonStatus.classList.remove('hidden');
+                    buttonStatus.innerHTML = '<div class="text-blue-600 font-semibold">🔄 버튼이 클릭되었습니다! AI가 스토리를 분석하고 있습니다...</div>';
+                }
+                
                 const storyText = document.getElementById('storyText').value.trim();
-                console.log('📝 스토리 텍스트:', storyText ? '입력됨' : '비어있음');
+                console.log('📝 스토리 텍스트:', storyText ? '입력됨 (길이: ' + storyText.length + ')' : '비어있음');
                 
                 if (!storyText) {
                     alert('스토리를 입력해주세요!');
+                    // 버튼 복구
+                    if (analyzeButton) {
+                        analyzeButton.disabled = false;
+                        analyzeButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                    if (buttonText) {
+                        buttonText.innerHTML = 'AI 씬 분석 & 이미지 생성';
+                    }
+                    if (buttonStatus) {
+                        buttonStatus.classList.add('hidden');
+                    }
                     return;
                 }
 
@@ -239,16 +277,46 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                     });
 
                     const data = await response.json();
+                    console.log('📨 API 응답:', data);
                     
                     if (data.success) {
                         sceneList = data.scenes;
+                        console.log('✅ 씬 분석 성공! 씬 개수:', sceneList.length);
                         displayScenes();
+                        
+                        // 버튼 복구
+                        if (analyzeButton) {
+                            analyzeButton.disabled = false;
+                            analyzeButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                        if (buttonText) {
+                            buttonText.innerHTML = 'AI 씬 분석 & 이미지 생성';
+                        }
+                        if (buttonStatus) {
+                            buttonStatus.innerHTML = '<div class="text-green-600 font-semibold">✅ 분석 완료! 아래 결과를 확인하세요.</div>';
+                            setTimeout(() => {
+                                buttonStatus.classList.add('hidden');
+                            }, 3000);
+                        }
                     } else {
                         throw new Error(data.error || '씬 분석 실패');
                     }
                 } catch (error) {
+                    console.error('❌ 오류 발생:', error);
                     alert('씬 분석 중 오류 발생: ' + error.message);
                     sceneAnalysisSection.classList.add('hidden');
+                    
+                    // 버튼 복구
+                    if (analyzeButton) {
+                        analyzeButton.disabled = false;
+                        analyzeButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                    if (buttonText) {
+                        buttonText.innerHTML = 'AI 씬 분석 & 이미지 생성';
+                    }
+                    if (buttonStatus) {
+                        buttonStatus.innerHTML = '<div class="text-red-600 font-semibold">❌ 오류 발생: ' + error.message + '</div>';
+                    }
                 }
             }
 
