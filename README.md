@@ -184,10 +184,15 @@ pm2 restart webapp
 - **기술 스택**: 
   - Backend: Hono + TypeScript
   - Frontend: Vanilla JavaScript + TailwindCSS
-  - AI: Google Gemini 3 Pro Image API
+  - AI: Google Gemini 3 Pro Image API + Gemini 2.0 Flash
 - **퍼블릭 URL**: https://3000-i56x5nh4xinmzp74cqlq8-5185f4aa.sandbox.novita.ai
 - **로컬 개발**: http://localhost:3000
-- **마지막 업데이트**: 2026-01-02
+- **마지막 업데이트**: 2026-01-02 (JavaScript 구문 오류 수정 완료)
+
+## 🐛 최근 수정 사항
+- **2026-01-02**: JavaScript 템플릿 리터럴 백틱 오류 수정 - 버튼 클릭이 이제 정상 작동합니다
+- 즉각적인 시각적 피드백 추가 (버튼 클릭 시 즉시 상태 변경)
+- 테스트 버튼 추가 (JavaScript 작동 확인용)
 
 ## 아직 구현되지 않은 기능
 
