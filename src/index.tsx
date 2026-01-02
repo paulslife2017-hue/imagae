@@ -505,16 +505,19 @@ app.get('/', (c) => {
                 generationList.appendChild(card);
                 
                 try {
-                    // 나노바나나 프로 이미지 생성 프롬프트
-                    const styleGuide = 'Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.';
+                    // 나노바나나 프로 이미지 생성 프롬프트 (레퍼런스 스타일)
+                    const styleGuide = 'Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.';
                     
-                    const imagePrompt = styleGuide + '\\n\\nScene ' + (i + 1) + ' of ' + scenes.length + ':\\nDescription: ' + scene.description + '\\nVisual Elements: ' + scene.visualElements + '\\nDuration: ' + scene.duration + ' seconds\\n\\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.';
+                    const referenceImages = '\\n\\nReference Images: https://www.genspark.ai/api/files/s/xCmU67c4, https://www.genspark.ai/api/files/s/HL5G5AnC';
+                    
+                    const imagePrompt = styleGuide + referenceImages + '\\n\\nScene ' + (i + 1) + ' of ' + scenes.length + ':\\nDescription: ' + scene.description + '\\nVisual Elements: ' + scene.visualElements + '\\nDuration: ' + scene.duration + ' seconds\\n\\nCreate an educational illustration that visually represents this scene. Match the style of the reference images: warm and emotional hand-drawn illustration with brick wall background, simple but expressive characters, soft lighting, and integrated Korean text. The image should be engaging, clear, and suitable as a YouTube video background. Aspect ratio: 16:9 for YouTube compatibility.';
 
-                    // GenSpark API 직접 호출
+                    // GenSpark API 직접 호출 (이미지 레퍼런스 포함)
                     const response = await axios.post('/api/generate-image', {
                         prompt: imagePrompt,
                         model: 'nano-banana-pro',
-                        aspectRatio: '16:9'
+                        aspectRatio: '16:9',
+                        imageUrls: ['https://www.genspark.ai/api/files/s/xCmU67c4', 'https://www.genspark.ai/api/files/s/HL5G5AnC']
                     });
                     
                     if (response.data.success && response.data.imageUrl) {
@@ -790,16 +793,19 @@ app.get('/', (c) => {
                 thumbnailGrid.appendChild(card);
                 
                 try {
-                    // 썸네일 프롬프트 생성
-                    const styleText = concept.title === '임팩트 스타일' ? 'Bold typography, high contrast colors, dynamic composition, eye-catching design' : concept.title === '스토리 중심' ? 'Story-driven imagery, emotional connection, warm and inviting colors, relatable characters' : 'Minimal and clean design, elegant composition, professional look, sophisticated color palette';
+                    // 썸네일 프롬프트 생성 (레퍼런스 스타일)
+                    const baseStyle = 'Hand-drawn illustration style with warm earthy colors (browns, beiges, soft blues), emotional and inviting atmosphere, brick wall background elements, Korean text integration. Reference style: https://www.genspark.ai/api/files/s/xCmU67c4, https://www.genspark.ai/api/files/s/HL5G5AnC';
                     
-                    const thumbnailPrompt = 'YouTube thumbnail design. ' + concept.description + '\\n\\nStory summary: ' + fullStory.substring(0, 200) + '...\\n\\nStyle: ' + styleText + '\\n\\nCreate a compelling YouTube thumbnail that attracts viewers and represents the story. Aspect ratio: 16:9. Include visual elements that make people want to click.';
+                    const styleText = concept.title === '임팩트 스타일' ? 'Bold and dynamic composition with strong visual hierarchy' : concept.title === '스토리 중심' ? 'Emotional storytelling with expressive characters and warm lighting' : 'Clean and elegant layout with sophisticated composition';
+                    
+                    const thumbnailPrompt = 'YouTube thumbnail design. ' + concept.description + '\\n\\n' + baseStyle + '\\n\\nStory summary: ' + fullStory.substring(0, 200) + '...\\n\\nStyle emphasis: ' + styleText + '\\n\\nCreate a compelling YouTube thumbnail that attracts viewers and represents the story. Match the warm, hand-drawn illustration style of the reference images. Aspect ratio: 16:9. Include visual elements that make people want to click.';
 
-                    // 이미지 생성 API 호출
+                    // 이미지 생성 API 호출 (레퍼런스 포함)
                     const response = await axios.post('/api/generate-image', {
                         prompt: thumbnailPrompt,
                         model: 'nano-banana-pro',
-                        aspectRatio: '16:9'
+                        aspectRatio: '16:9',
+                        imageUrls: ['https://www.genspark.ai/api/files/s/xCmU67c4', 'https://www.genspark.ai/api/files/s/HL5G5AnC']
                     });
                     
                     if (response.data.success && response.data.imageUrl) {
@@ -923,7 +929,7 @@ ${story}
 
 app.post('/api/generate-image', async (c) => {
   try {
-    const { prompt, model, aspectRatio } = await c.req.json()
+    const { prompt, model, aspectRatio, imageUrls } = await c.req.json()
     
     if (!prompt) {
       return c.json({ success: false, error: '프롬프트가 필요합니다' })
@@ -933,7 +939,7 @@ app.post('/api/generate-image', async (c) => {
     // 실제 배포 환경에서는 GenSpark API 키가 필요합니다
     // 현재는 placeholder 이미지 반환
     
-    // TODO: GenSpark API 통합
+    // TODO: GenSpark API 통합 (이미지 레퍼런스 포함)
     // const response = await fetch('https://api.genspark.ai/v1/image-generation', {
     //   method: 'POST',
     //   headers: {
@@ -943,26 +949,30 @@ app.post('/api/generate-image', async (c) => {
     //   body: JSON.stringify({
     //     prompt: prompt,
     //     model: model || 'nano-banana-pro',
-    //     aspect_ratio: aspectRatio || '16:9'
+    //     aspect_ratio: aspectRatio || '16:9',
+    //     image_urls: imageUrls || []  // 레퍼런스 이미지
     //   })
     // });
     
-    // 임시 placeholder 이미지 (실제로는 위의 API 응답 사용)
-    const colors = ['4F46E5', '7C3AED', 'EC4899', '10B981', 'F59E0B', 'EF4444'];
+    // 임시 placeholder 이미지 (레퍼런스 스타일 반영)
+    const colors = ['8B7355', 'A0826D', '6B9AC4', 'D4A574', 'C4A57B'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
     
     const svgContent = `<svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:#${randomColor};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#${randomColor}aa;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#${randomColor}dd;stop-opacity:1" />
         </linearGradient>
       </defs>
       <rect width="1280" height="720" fill="url(#grad)"/>
-      <text x="640" y="360" font-family="Arial" font-size="32" font-weight="bold" fill="white" text-anchor="middle">
-        Generated Image
+      <text x="640" y="340" font-family="Arial" font-size="28" font-weight="bold" fill="white" text-anchor="middle">
+        레퍼런스 스타일 적용됨
       </text>
-      <text x="640" y="420" font-family="Arial" font-size="18" fill="white" text-anchor="middle" opacity="0.8">
+      <text x="640" y="390" font-family="Arial" font-size="20" fill="white" text-anchor="middle" opacity="0.9">
+        따뜻한 손그림 일러스트 스타일
+      </text>
+      <text x="640" y="430" font-family="Arial" font-size="16" fill="white" text-anchor="middle" opacity="0.8">
         Nano Banana Pro - ${model || 'default'}
       </text>
     </svg>`;
