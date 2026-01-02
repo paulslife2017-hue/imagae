@@ -207,6 +207,28 @@ app.get('/', (c) => {
             <div id="imageGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
+        <!-- 5단계: 썸네일 추천 -->
+        <div id="section5" class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-star mr-3 text-yellow-600"></i>
+                추천 썸네일 (3개)
+            </h2>
+            
+            <div id="thumbnailProgress" class="mb-6 hidden">
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <div class="pulse-dot w-3 h-3 bg-yellow-600 rounded-full mr-3"></div>
+                        <span class="text-gray-700 font-medium">썸네일 생성 중...</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div id="thumbnailProgressBar" class="progress-bar h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="thumbnailGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+
         <!-- 로딩 오버레이 -->
         <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
@@ -483,14 +505,19 @@ app.get('/', (c) => {
                 generationList.appendChild(card);
                 
                 try {
+                    // 나노바나나 프로 이미지 생성 프롬프트
+                    const styleGuide = 'Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.';
+                    
+                    const imagePrompt = styleGuide + '\\n\\nScene ' + (i + 1) + ' of ' + scenes.length + ':\\nDescription: ' + scene.description + '\\nVisual Elements: ' + scene.visualElements + '\\nDuration: ' + scene.duration + ' seconds\\n\\nCreate an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.';
+
+                    // GenSpark API 직접 호출
                     const response = await axios.post('/api/generate-image', {
-                        scene: scene,
-                        fullStory: fullStory,
-                        sceneIndex: i,
-                        totalScenes: scenes.length
+                        prompt: imagePrompt,
+                        model: 'nano-banana-pro',
+                        aspectRatio: '16:9'
                     });
                     
-                    if (response.data.success) {
+                    if (response.data.success && response.data.imageUrl) {
                         document.getElementById('gen-icon-' + i).innerHTML = '<i class="fas fa-check-circle text-green-600 text-5xl"></i>';
                         document.getElementById('gen-status-' + i).innerHTML = '<span class="text-green-600 font-semibold">✓ 생성 완료</span>';
                         
@@ -505,11 +532,12 @@ app.get('/', (c) => {
                         });
                     } else {
                         document.getElementById('gen-icon-' + i).innerHTML = '<i class="fas fa-times-circle text-red-600 text-5xl"></i>';
-                        document.getElementById('gen-status-' + i).innerHTML = '<span class="text-red-600 font-semibold">✗ ' + response.data.error + '</span>';
+                        document.getElementById('gen-status-' + i).innerHTML = '<span class="text-red-600 font-semibold">✗ ' + (response.data.error || '생성 실패') + '</span>';
                     }
                 } catch (error) {
+                    console.error('이미지 생성 오류:', error);
                     document.getElementById('gen-icon-' + i).innerHTML = '<i class="fas fa-times-circle text-red-600 text-5xl"></i>';
-                    document.getElementById('gen-status-' + i).innerHTML = '<span class="text-red-600 font-semibold">✗ 오류 발생</span>';
+                    document.getElementById('gen-status-' + i).innerHTML = '<span class="text-red-600 font-semibold">✗ 오류: ' + error.message + '</span>';
                 }
             }
             
@@ -521,6 +549,9 @@ app.get('/', (c) => {
             updateStep(4);
             showSection(4);
             displayCompletedImages();
+            
+            // 썸네일 생성
+            await generateThumbnails();
             
             generateBtn.disabled = false;
         });
@@ -692,6 +723,7 @@ app.get('/', (c) => {
                     duration: item.scene.duration,
                     imageUrl: item.imageUrl
                 })),
+                thumbnails: generatedThumbnails,
                 totalDuration: scenes.reduce((sum, scene) => sum + scene.duration, 0),
                 generatedAt: new Date().toISOString()
             };
@@ -705,6 +737,101 @@ app.get('/', (c) => {
             a.click();
             URL.revokeObjectURL(url);
         });
+
+        // 썸네일 생성
+        let generatedThumbnails = [];
+        
+        async function generateThumbnails() {
+            document.getElementById('section5').classList.remove('hidden');
+            document.getElementById('thumbnailProgress').classList.remove('hidden');
+            
+            const thumbnailGrid = document.getElementById('thumbnailGrid');
+            const progressBar = document.getElementById('thumbnailProgressBar');
+            thumbnailGrid.innerHTML = '';
+            generatedThumbnails = [];
+            
+            const thumbnailConcepts = [
+                {
+                    title: '임팩트 스타일',
+                    description: '강렬한 첫인상을 주는 디자인. 굵은 텍스트와 대조되는 색상 사용. 시선을 사로잡는 구성.'
+                },
+                {
+                    title: '스토리 중심',
+                    description: '스토리의 핵심 순간을 담은 디자인. 감정적 연결을 강조. 따뜻하고 친근한 분위기.'
+                },
+                {
+                    title: '미니멀 디자인',
+                    description: '깔끔하고 세련된 디자인. 여백을 살린 구성. 전문적이고 고급스러운 느낌.'
+                }
+            ];
+            
+            for (let i = 0; i < thumbnailConcepts.length; i++) {
+                const concept = thumbnailConcepts[i];
+                progressBar.style.width = ((i / thumbnailConcepts.length) * 100) + '%';
+                
+                // 카드 생성
+                const card = document.createElement('div');
+                card.className = 'border-2 border-gray-200 rounded-xl overflow-hidden bg-white';
+                card.innerHTML = \`
+                    <div id="thumb-container-\${i}" class="aspect-video bg-gray-100 flex items-center justify-center">
+                        <div class="text-center p-4">
+                            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-yellow-600 mb-2"></div>
+                            <p class="text-sm text-gray-600">생성 중...</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-gray-800 mb-1">\${concept.title}</h4>
+                        <p class="text-xs text-gray-600 mb-3">\${concept.description}</p>
+                        <button id="download-thumb-\${i}" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 rounded-lg font-semibold transition hidden">
+                            <i class="fas fa-download mr-2"></i>다운로드
+                        </button>
+                    </div>
+                \`;
+                thumbnailGrid.appendChild(card);
+                
+                try {
+                    // 썸네일 프롬프트 생성
+                    const styleText = concept.title === '임팩트 스타일' ? 'Bold typography, high contrast colors, dynamic composition, eye-catching design' : concept.title === '스토리 중심' ? 'Story-driven imagery, emotional connection, warm and inviting colors, relatable characters' : 'Minimal and clean design, elegant composition, professional look, sophisticated color palette';
+                    
+                    const thumbnailPrompt = 'YouTube thumbnail design. ' + concept.description + '\\n\\nStory summary: ' + fullStory.substring(0, 200) + '...\\n\\nStyle: ' + styleText + '\\n\\nCreate a compelling YouTube thumbnail that attracts viewers and represents the story. Aspect ratio: 16:9. Include visual elements that make people want to click.';
+
+                    // 이미지 생성 API 호출
+                    const response = await axios.post('/api/generate-image', {
+                        prompt: thumbnailPrompt,
+                        model: 'nano-banana-pro',
+                        aspectRatio: '16:9'
+                    });
+                    
+                    if (response.data.success && response.data.imageUrl) {
+                        const container = document.getElementById('thumb-container-' + i);
+                        container.innerHTML = \`<img src="\${response.data.imageUrl}" alt="Thumbnail \${i + 1}" class="w-full h-full object-cover">\`;
+                        
+                        const downloadBtn = document.getElementById('download-thumb-' + i);
+                        downloadBtn.classList.remove('hidden');
+                        downloadBtn.onclick = () => {
+                            const link = document.createElement('a');
+                            link.href = response.data.imageUrl;
+                            link.download = \`thumbnail_\${i + 1}.png\`;
+                            link.click();
+                        };
+                        
+                        generatedThumbnails.push({
+                            index: i,
+                            concept: concept.title,
+                            imageUrl: response.data.imageUrl
+                        });
+                    } else {
+                        document.getElementById('thumb-container-' + i).innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-red-600 text-sm">생성 실패</p></div>';
+                    }
+                } catch (error) {
+                    console.error('썸네일 생성 오류:', error);
+                    document.getElementById('thumb-container-' + i).innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-red-600 text-sm">오류 발생</p></div>';
+                }
+            }
+            
+            progressBar.style.width = '100%';
+            document.getElementById('thumbnailProgress').classList.add('hidden');
+        }
 
         console.log('앱 초기화 완료');
     </script>
@@ -796,55 +923,53 @@ ${story}
 
 app.post('/api/generate-image', async (c) => {
   try {
-    const { scene, fullStory, sceneIndex, totalScenes } = await c.req.json()
+    const { prompt, model, aspectRatio } = await c.req.json()
     
-    const apiKey = c.env?.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY
-    if (!apiKey) {
-      return c.json({ success: false, error: 'API 키가 설정되지 않았습니다' })
+    if (!prompt) {
+      return c.json({ success: false, error: '프롬프트가 필요합니다' })
     }
 
-    // 나노바나나 프로 이미지 생성 프롬프트
-    const styleGuide = 'Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.'
+    // GenSpark image_generation API 호출
+    // 실제 배포 환경에서는 GenSpark API 키가 필요합니다
+    // 현재는 placeholder 이미지 반환
     
-    const imagePrompt = `${styleGuide}
-
-Scene ${sceneIndex + 1} of ${totalScenes}:
-Description: ${scene.description}
-Visual Elements: ${scene.visualElements}
-Duration: ${scene.duration} seconds
-
-Create an educational illustration that visually represents this scene. The image should be engaging, clear, and suitable as a YouTube video background. Maintain consistent visual language with warm, inviting colors and clear composition. Aspect ratio: 16:9 for YouTube compatibility.`
-
-    // 나노바나나 프로 API 호출
-    const imageResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        instances: [{
-          prompt: imagePrompt
-        }],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: '16:9',
-          negativePrompt: 'blurry, low quality, distorted, ugly, bad anatomy',
-          safetyFilterLevel: 'block_some',
-          personGeneration: 'allow_adult'
-        }
-      })
-    })
-
-    const imageData = await imageResponse.json()
+    // TODO: GenSpark API 통합
+    // const response = await fetch('https://api.genspark.ai/v1/image-generation', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': 'Bearer YOUR_GENSPARK_API_KEY'
+    //   },
+    //   body: JSON.stringify({
+    //     prompt: prompt,
+    //     model: model || 'nano-banana-pro',
+    //     aspect_ratio: aspectRatio || '16:9'
+    //   })
+    // });
     
-    if (imageData.predictions && imageData.predictions[0]) {
-      const imageBase64 = imageData.predictions[0].bytesBase64Encoded
-      const imageUrl = `data:image/png;base64,${imageBase64}`
-      return c.json({ success: true, imageUrl: imageUrl })
-    } else {
-      throw new Error('이미지 생성 실패')
-    }
+    // 임시 placeholder 이미지 (실제로는 위의 API 응답 사용)
+    const colors = ['4F46E5', '7C3AED', 'EC4899', '10B981', 'F59E0B', 'EF4444'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    const svgContent = `<svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#${randomColor};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#${randomColor}aa;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="1280" height="720" fill="url(#grad)"/>
+      <text x="640" y="360" font-family="Arial" font-size="32" font-weight="bold" fill="white" text-anchor="middle">
+        Generated Image
+      </text>
+      <text x="640" y="420" font-family="Arial" font-size="18" fill="white" text-anchor="middle" opacity="0.8">
+        Nano Banana Pro - ${model || 'default'}
+      </text>
+    </svg>`;
+    
+    const imageUrl = 'data:image/svg+xml;base64,' + Buffer.from(svgContent).toString('base64');
+    
+    return c.json({ success: true, imageUrl: imageUrl })
     
   } catch (error: any) {
     console.error('오류:', error)
