@@ -55,6 +55,13 @@ app.get('/', (c) => {
                     문단 입력
                 </h2>
                 <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">영상 제목:</label>
+                    <input type="text" id="videoTitle" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="예: 가난에서 벗어나는 사람들의 비밀"
+                           value="가난에서 벗어나는 사람들의 비밀">
+                </div>
+                <div class="mb-4">
                     <label class="block text-gray-700 font-semibold mb-2">스토리 전체를 입력하세요:</label>
                     <textarea id="storyText" 
                               class="w-full h-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
@@ -113,7 +120,7 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
             </div>
 
             <!-- 생성 완료 섹션 -->
-            <div id="completedSection" class="bg-white rounded-lg shadow-lg p-6 hidden">
+            <div id="completedSection" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-2xl font-bold text-gray-800 flex items-center">
                         <i class="fas fa-check-circle mr-2 text-green-600"></i>
@@ -121,6 +128,26 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                     </h2>
                 </div>
                 <div id="completedGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+
+            <!-- 썸네일 생성 섹션 -->
+            <div id="thumbnailSection" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-image mr-2 text-pink-600"></i>
+                    YouTube 썸네일
+                </h2>
+                <div id="thumbnailStatus" class="mb-4 p-3 bg-gray-100 rounded-lg text-center">
+                    대기 중...
+                </div>
+                <div id="thumbnailPreview" class="mb-4 hidden">
+                    <img src="" alt="Thumbnail" class="w-full rounded-lg shadow-md">
+                </div>
+                <div class="text-center">
+                    <a id="thumbnailDownload" href="#" download="thumbnail.png" 
+                       class="hidden inline-block bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition">
+                        <i class="fas fa-download mr-2"></i>썸네일 다운로드
+                    </a>
+                </div>
             </div>
 
             <!-- 결과 섹션 -->
@@ -373,24 +400,137 @@ Use Nano Banana Pro model for best quality.\`;
                                 </div>
                             </div>
                             <p class="text-sm text-gray-600 mb-3">\${item.scene.description.substring(0, 80)}\${item.scene.description.length > 80 ? '...' : ''}</p>
-                            <a href="\${item.imageUrl}" download="scene_\${String(item.index + 1).padStart(2, '0')}.png" 
-                               class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition">
-                                <i class="fas fa-download mr-2"></i>다운로드
-                            </a>
+                            <div class="flex gap-2">
+                                <a href="\${item.imageUrl}" download="scene_\${String(item.index + 1).padStart(2, '0')}.png" 
+                                   class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition">
+                                    <i class="fas fa-download mr-1"></i>다운로드
+                                </a>
+                                <button onclick="regenerateImage(\${item.index})" 
+                                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded transition">
+                                    <i class="fas fa-redo mr-1"></i>재생성
+                                </button>
+                            </div>
                         </div>
                     \`;
                     completedGrid.appendChild(card);
                 });
+
+                // 썸네일 생성 버튼 추가
+                const thumbnailSection = document.createElement('div');
+                thumbnailSection.className = 'col-span-full mt-6 text-center';
+                thumbnailSection.innerHTML = \`
+                    <button onclick="generateThumbnail()" 
+                            class="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
+                        <i class="fas fa-image mr-2"></i>썸네일 생성하기
+                    </button>
+                    <p class="text-sm text-gray-600 mt-2">영상 제목을 기반으로 매력적인 썸네일을 생성합니다</p>
+                \`;
+                completedGrid.appendChild(thumbnailSection);
             }
 
             function clearAll() {
                 if (confirm('모든 내용을 초기화하시겠습니까?')) {
+                    document.getElementById('videoTitle').value = '';
                     document.getElementById('storyText').value = '';
                     document.getElementById('sceneAnalysisSection').classList.add('hidden');
                     document.getElementById('generationProgressSection').classList.add('hidden');
                     document.getElementById('completedSection').classList.add('hidden');
+                    document.getElementById('thumbnailSection').classList.add('hidden');
                     sceneList = [];
                     generatedImages = [];
+                }
+            }
+
+            async function regenerateImage(index) {
+                if (!confirm(\`씬 \${index + 1}의 이미지를 다시 생성하시겠습니까? (약 2-3분 소요)\`)) {
+                    return;
+                }
+
+                const scene = sceneList[index];
+                const progressCard = document.getElementById(\`progress-\${index}\`);
+                
+                if (!progressCard) {
+                    alert('진행 상황 카드를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+                    return;
+                }
+
+                // 진행 섹션으로 스크롤
+                const generationProgressSection = document.getElementById('generationProgressSection');
+                generationProgressSection.classList.remove('hidden');
+                generationProgressSection.scrollIntoView({ behavior: 'smooth' });
+
+                // 재생성 시작
+                await generateSceneImage(index);
+
+                // 완료된 이미지 목록 업데이트
+                displayCompletedImages();
+            }
+
+            async function generateThumbnail() {
+                const videoTitle = document.getElementById('videoTitle').value.trim();
+                if (!videoTitle) {
+                    alert('영상 제목을 입력해주세요!');
+                    return;
+                }
+
+                if (!confirm(\`"\${videoTitle}" 제목으로 썸네일을 생성하시겠습니까? (약 2-3분 소요)\`)) {
+                    return;
+                }
+
+                // 썸네일 섹션 표시
+                const thumbnailSection = document.getElementById('thumbnailSection');
+                thumbnailSection.classList.remove('hidden');
+                thumbnailSection.scrollIntoView({ behavior: 'smooth' });
+
+                const thumbnailStatus = document.getElementById('thumbnailStatus');
+                const thumbnailPreview = document.getElementById('thumbnailPreview');
+                const thumbnailDownload = document.getElementById('thumbnailDownload');
+
+                thumbnailStatus.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>썸네일 생성 중... (2-3분 소요)';
+                thumbnailPreview.classList.add('hidden');
+                thumbnailDownload.classList.add('hidden');
+
+                try {
+                    const prompt = \`\${STYLE_PROMPT}
+
+Reference Image: \${REFERENCE_IMAGE}
+(Please analyze and replicate the visual style from this reference image)
+
+Title: \${videoTitle}
+
+Create an eye-catching YouTube thumbnail that represents this video title. 
+The thumbnail should be visually striking, professional, and engaging.
+Include bold, readable text if needed to emphasize the main message.
+Use contrasting colors to make the thumbnail stand out.
+Aspect ratio: 16:9 for YouTube compatibility.
+Make it click-worthy and attention-grabbing!\`;
+
+                    const response = await fetch('/api/generate-scene-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            scene: { description: videoTitle, visualElements: 'YouTube thumbnail design', duration: 0 },
+                            prompt: prompt,
+                            index: -1
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        thumbnailStatus.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i>썸네일 생성 완료!';
+                        
+                        const img = thumbnailPreview.querySelector('img');
+                        img.src = data.imageUrl;
+                        thumbnailPreview.classList.remove('hidden');
+
+                        thumbnailDownload.href = data.imageUrl;
+                        thumbnailDownload.classList.remove('hidden');
+                    } else {
+                        throw new Error(data.error || '생성 실패');
+                    }
+                } catch (error) {
+                    thumbnailStatus.innerHTML = \`<i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>실패: \${error.message}\`;
                 }
             }
         </script>
