@@ -88,7 +88,7 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
                     </div>
                 </div>
                 <div class="flex gap-4">
-                    <button onclick="analyzeAndGenerate()" 
+                    <button id="analyzeButton" onclick="analyzeAndGenerate()" 
                             class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                         <i class="fas fa-magic mr-2"></i>
                         AI 씬 분석 & 이미지 생성
@@ -183,14 +183,38 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
         </div>
 
         <script>
+            console.log('🎬 YouTube 배경화면 이미지 생성기 로드됨');
+            
             const STYLE_PROMPT = 'Style: Digital illustration with hand-drawn effect, warm earthy colors (browns, beiges, soft blues), simple cartoonish characters with expressive faces, brick wall background with windows, educational atmosphere, Korean text integrated naturally like chalk on blackboard or subtitles.';
             const REFERENCE_IMAGE = 'https://www.genspark.ai/api/files/s/57W955Hh';
             
             let sceneList = [];
             let generatedImages = [];
+            
+            // 페이지 로드 완료 확인
+            window.addEventListener('DOMContentLoaded', () => {
+                console.log('✅ DOM 로드 완료');
+                console.log('🔘 analyzeAndGenerate 함수 정의됨:', typeof analyzeAndGenerate);
+                
+                // 버튼에 추가 이벤트 리스너 등록
+                const analyzeButton = document.getElementById('analyzeButton');
+                if (analyzeButton) {
+                    console.log('✅ analyzeButton 찾음');
+                    analyzeButton.addEventListener('click', () => {
+                        console.log('🖱️ 버튼 클릭 감지됨!');
+                    });
+                } else {
+                    console.error('❌ analyzeButton을 찾을 수 없습니다');
+                }
+            });
+
 
             async function analyzeAndGenerate() {
+                console.log('✅ analyzeAndGenerate 함수가 호출되었습니다!');
+                
                 const storyText = document.getElementById('storyText').value.trim();
+                console.log('📝 스토리 텍스트:', storyText ? '입력됨' : '비어있음');
+                
                 if (!storyText) {
                     alert('스토리를 입력해주세요!');
                     return;
@@ -198,12 +222,15 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
 
                 // 씬 분석 요청
                 const sceneAnalysisSection = document.getElementById('sceneAnalysisSection');
+                console.log('🔍 sceneAnalysisSection 요소:', sceneAnalysisSection ? '찾음' : '없음');
+                
                 sceneAnalysisSection.classList.remove('hidden');
                 sceneAnalysisSection.scrollIntoView({ behavior: 'smooth' });
 
                 const sceneListEl = document.getElementById('sceneList');
                 sceneListEl.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i><p class="text-gray-600">AI가 스토리를 분석하여 씬을 분할하고 있습니다...</p></div>';
 
+                console.log('🚀 API 호출 시작...');
                 try {
                     const response = await fetch('/api/analyze-scenes', {
                         method: 'POST',
