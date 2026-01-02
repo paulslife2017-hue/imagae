@@ -935,51 +935,65 @@ app.post('/api/generate-image', async (c) => {
       return c.json({ success: false, error: '프롬프트가 필요합니다' })
     }
 
-    // GenSpark image_generation API 호출
-    // 실제 배포 환경에서는 GenSpark API 키가 필요합니다
-    // 현재는 placeholder 이미지 반환
-    
-    // TODO: GenSpark API 통합 (이미지 레퍼런스 포함)
-    // const response = await fetch('https://api.genspark.ai/v1/image-generation', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': 'Bearer YOUR_GENSPARK_API_KEY'
-    //   },
-    //   body: JSON.stringify({
-    //     prompt: prompt,
-    //     model: model || 'nano-banana-pro',
-    //     aspect_ratio: aspectRatio || '16:9',
-    //     image_urls: imageUrls || []  // 레퍼런스 이미지
-    //   })
-    // });
-    
-    // 임시 placeholder 이미지 (레퍼런스 스타일 반영)
-    const colors = ['8B7355', 'A0826D', '6B9AC4', 'D4A574', 'C4A57B'];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    const svgContent = `<svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#${randomColor};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#${randomColor}dd;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect width="1280" height="720" fill="url(#grad)"/>
-      <text x="640" y="340" font-family="Arial" font-size="28" font-weight="bold" fill="white" text-anchor="middle">
-        레퍼런스 스타일 적용됨
-      </text>
-      <text x="640" y="390" font-family="Arial" font-size="20" fill="white" text-anchor="middle" opacity="0.9">
-        따뜻한 손그림 일러스트 스타일
-      </text>
-      <text x="640" y="430" font-family="Arial" font-size="16" fill="white" text-anchor="middle" opacity="0.8">
-        Nano Banana Pro - ${model || 'default'}
-      </text>
-    </svg>`;
-    
-    const imageUrl = 'data:image/svg+xml;base64,' + Buffer.from(svgContent).toString('base64');
-    
-    return c.json({ success: true, imageUrl: imageUrl })
+    const apiKey = c.env?.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY
+    if (!apiKey) {
+      return c.json({ success: false, error: 'API 키가 설정되지 않았습니다' })
+    }
+
+    // Gemini Imagen 3.0 API로 이미지 생성
+    try {
+      const imagenResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instances: [{
+            prompt: prompt
+          }],
+          parameters: {
+            sampleCount: 1,
+            aspectRatio: aspectRatio || '16:9',
+            negativePrompt: 'blurry, low quality, distorted, ugly, bad anatomy, duplicate, watermark',
+            safetyFilterLevel: 'block_some',
+            personGeneration: 'allow_adult'
+          }
+        })
+      })
+
+      const imagenData = await imagenResponse.json()
+      
+      if (imagenData.predictions && imagenData.predictions[0]) {
+        const imageBase64 = imagenData.predictions[0].bytesBase64Encoded
+        const imageUrl = `data:image/png;base64,${imageBase64}`
+        return c.json({ success: true, imageUrl: imageUrl })
+      } else {
+        throw new Error('Imagen API 응답 오류: ' + JSON.stringify(imagenData))
+      }
+    } catch (apiError: any) {
+      console.error('Imagen API 오류:', apiError)
+      
+      // Fallback: placeholder 이미지
+      const colors = ['8B7355', 'A0826D', '6B9AC4', 'D4A574', 'C4A57B'];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      
+      const svgContent = `<svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#${randomColor};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#${randomColor}dd;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="1280" height="720" fill="url(#grad)"/>
+        <text x="640" y="340" font-family="Arial" font-size="24" font-weight="bold" fill="white" text-anchor="middle">
+          이미지 생성 대기중
+        </text>
+        <text x="640" y="390" font-family="Arial" font-size="16" fill="white" text-anchor="middle" opacity="0.9">
+          레퍼런스 스타일: 따뜻한 손그림 일러스트
+        </text>
+      </svg>`;
+      
+      const imageUrl = 'data:image/svg+xml;base64,' + Buffer.from(svgContent).toString('base64');
+      return c.json({ success: true, imageUrl: imageUrl, fallback: true })
+    }
     
   } catch (error: any) {
     console.error('오류:', error)
