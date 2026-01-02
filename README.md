@@ -117,6 +117,8 @@
 GOOGLE_AI_API_KEY=your_api_key_here
 ```
 
+**중요**: API 키가 제대로 로드되려면 PM2로 서버를 실행해야 합니다.
+
 ### 로컬 개발
 ```bash
 # 의존성 설치
@@ -125,8 +127,17 @@ npm install
 # 빌드
 npm run build
 
-# 개발 서버 시작
+# PM2로 개발 서버 시작 (권장)
+pm2 start server.js --name webapp --watch false
+
+# 또는 직접 실행 (환경 변수가 자동 로드됨)
 npm run start
+
+# 서버 로그 확인
+pm2 logs webapp --nostream
+
+# 서버 재시작
+pm2 restart webapp
 ```
 
 ## 배포 상태
