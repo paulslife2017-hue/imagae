@@ -169,7 +169,14 @@ app.get('/', (c) => {
             <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
                 <div class="flex items-center justify-between mb-3">
                     <span class="font-semibold text-gray-700">전체 진행률</span>
-                    <span class="font-bold text-xl text-purple-600" id="overallProgress">0%</span>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-xl text-purple-600" id="overallProgress">0%</span>
+                        <button id="stopGenerationBtn" 
+                                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition">
+                            <i class="fas fa-stop mr-2"></i>
+                            중지
+                        </button>
+                    </div>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3">
                     <div id="overallProgressBar" class="progress-bar h-3 rounded-full" style="width: 0%"></div>
@@ -300,11 +307,14 @@ app.get('/', (c) => {
         let generatedImages = [];
         let editingSceneIndex = null;
         let fullStory = '';
+        let isGenerating = false;
+        let shouldStopGeneration = false;
 
         // DOM 요소
         const storyInput = document.getElementById('storyInput');
         const analyzeBtn = document.getElementById('analyzeBtn');
         const generateBtn = document.getElementById('generateBtn');
+        const stopGenerationBtn = document.getElementById('stopGenerationBtn');
         const charCount = document.getElementById('charCount');
 
         // 글자 수 카운트
@@ -464,6 +474,8 @@ app.get('/', (c) => {
             }
 
             generateBtn.disabled = true;
+            isGenerating = true;
+            shouldStopGeneration = false;
             updateStep(3);
             showSection(3);
             
@@ -476,6 +488,12 @@ app.get('/', (c) => {
             const currentSceneText = document.getElementById('currentSceneText');
             
             for (let i = 0; i < scenes.length; i++) {
+                // 중지 확인
+                if (shouldStopGeneration) {
+                    currentSceneText.textContent = \`생성이 중지되었습니다. (\${i}개 완료)\`;
+                    break;
+                }
+                
                 const scene = scenes[i];
                 
                 // 진행률 업데이트
@@ -544,19 +562,43 @@ app.get('/', (c) => {
                 }
             }
             
-            // 완료
-            overallProgressBar.style.width = '100%';
-            overallProgress.textContent = '100%';
-            currentSceneText.textContent = '모든 이미지 생성 완료!';
+            // 생성 완료 또는 중지됨
+            isGenerating = false;
             
-            updateStep(4);
-            showSection(4);
-            displayCompletedImages();
+            if (!shouldStopGeneration) {
+                // 완료
+                overallProgressBar.style.width = '100%';
+                overallProgress.textContent = '100%';
+                currentSceneText.textContent = '모든 이미지 생성 완료!';
+                
+                // 썸네일 생성
+                await generateThumbnails();
+            } else {
+                // 중지됨
+                overallProgress.textContent = Math.round((generatedImages.length / scenes.length) * 100) + '%';
+            }
             
-            // 썸네일 생성
-            await generateThumbnails();
+            // 생성된 이미지가 있으면 4단계로 이동
+            if (generatedImages.length > 0) {
+                updateStep(4);
+                showSection(4);
+                displayCompletedImages();
+            }
             
             generateBtn.disabled = false;
+        });
+
+        // 중지 버튼
+        stopGenerationBtn.addEventListener('click', () => {
+            if (!isGenerating) return;
+            
+            if (confirm('이미지 생성을 중지하시겠습니까?\\n\\n현재까지 생성된 이미지는 저장됩니다.')) {
+                shouldStopGeneration = true;
+                stopGenerationBtn.disabled = true;
+                stopGenerationBtn.innerHTML = '<i class="fas fa-check mr-2"></i>중지됨';
+                
+                alert(\`생성이 중지되었습니다.\\n\\n\${generatedImages.length}개의 이미지가 생성되었습니다.\`);
+            }
         });
 
         // 완성된 이미지 표시
@@ -929,7 +971,7 @@ ${story}
 
 app.post('/api/generate-image', async (c) => {
   try {
-    const { prompt, model, aspectRatio, imageUrls } = await c.req.json()
+    const { prompt } = await c.req.json()
     
     if (!prompt) {
       return c.json({ success: false, error: '프롬프트가 필요합니다' })
@@ -940,85 +982,110 @@ app.post('/api/generate-image', async (c) => {
       return c.json({ success: false, error: 'API 키가 설정되지 않았습니다' })
     }
 
-    // Gemini 2.5 Flash Image 모델로 이미지 생성
+    // Gemini 2.0 Flash를 사용하여 Imagen 3으로 이미지 생성 (한국어 프롬프트 지원)
     try {
-      const modelName = 'gemini-2.5-flash-image';
+      console.log('🎨 Imagen 3로 이미지 생성 시작...')
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+      // 한국어 스타일 프롬프트 (Imagen 3는 한국어 텍스트 렌더링 우수)
+      const imagePrompt = `한국 교육 YouTube 콘텐츠용 따뜻한 손그림 일러스트:
+
+스타일:
+- 손으로 그린 듯한 디지털 일러스트, 따뜻하고 감성적인 분위기
+- 색상: 따뜻한 갈색(#8B7355), 베이지(#D4A574), 은은한 블루(#6B9AC4)
+- 배경: 붉은 벽돌 벽과 창문, 교실 분위기
+- 캐릭터: 단순하지만 표현력 있는 만화풍
+- 질감: 종이 텍스처, 붓터치 보임
+
+중요: 반드시 명확한 한글 텍스트로 상황 설명 포함 (칠판 글씨나 자막 스타일)
+
+씬: ${prompt}
+
+16:9, YouTube용, 한글 필수`
+
+      // Gemini 2.0 Flash로 Imagen 3 이미지 생성 요청
+      const fullPrompt = 'Generate an image with this prompt using Imagen 3:\n\n' + imagePrompt + '\n\nCreate a warm, hand-drawn illustration in 16:9 aspect ratio with clear Korean text integrated naturally.'
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{
-            parts: [{
-              text: prompt
-            }]
+            parts: [{ text: fullPrompt }]
           }],
           generationConfig: {
             temperature: 0.9,
-            maxOutputTokens: 8192
+            candidateCount: 1
           }
         })
       })
 
       const data = await response.json()
       
-      console.log('Gemini 응답:', JSON.stringify(data).substring(0, 200))
+      console.log('✅ Gemini 응답 받음')
       
       // 응답에서 이미지 찾기
       if (data.candidates && data.candidates[0]) {
         const parts = data.candidates[0].content.parts;
         
         for (const part of parts) {
-          // inline_data 또는 inlineData 확인
           const inlineData = part.inline_data || part.inlineData;
           if (inlineData && inlineData.data) {
             const imageBase64 = inlineData.data;
             const mimeType = inlineData.mime_type || inlineData.mimeType || 'image/png';
-            const imageUrl = `data:${mimeType};base64,${imageBase64}`;
-            console.log('이미지 생성 성공!');
+            const imageUrl = 'data:' + mimeType + ';base64,' + imageBase64;
+            console.log('✅ 이미지 생성 성공!')
             return c.json({ success: true, imageUrl: imageUrl });
           }
         }
       }
       
-      // 이미지가 없으면 오류
-      console.error('Gemini 응답에 이미지 없음:', data);
-      throw new Error('Gemini가 이미지를 생성하지 않음');
+      console.warn('⚠️ 이미지 생성 실패, fallback 사용')
+      throw new Error('이미지 생성 실패')
       
     } catch (apiError: any) {
-      console.error('Gemini API 오류:', apiError)
+      console.error('❌ API 오류:', apiError.message)
       
-      // Fallback: 예쁜 placeholder 이미지
+      // Fallback: SVG placeholder
       const colors = ['8B7355', 'A0826D', '6B9AC4', 'D4A574', 'C4A57B'];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      const sceneNumber = Math.floor(Math.random() * 100);
       
-      const svgContent = `<svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#${randomColor};stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#${randomColor}dd;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="1280" height="720" fill="url(#grad)"/>
-        <circle cx="200" cy="200" r="80" fill="rgba(255,255,255,0.2)"/>
-        <circle cx="1080" cy="520" r="100" fill="rgba(255,255,255,0.15)"/>
-        <text x="640" y="320" font-family="Arial" font-size="32" font-weight="bold" fill="white" text-anchor="middle">
-          이미지 생성 준비중
-        </text>
-        <text x="640" y="380" font-family="Arial" font-size="18" fill="white" text-anchor="middle" opacity="0.9">
-          따뜻한 손그림 일러스트 스타일
-        </text>
-        <text x="640" y="420" font-family="Arial" font-size="14" fill="white" text-anchor="middle" opacity="0.7">
-          Gemini 2.5 Flash Image
-        </text>
-      </svg>`;
+      const svgContent = '<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">' +
+        '<defs>' +
+          '<linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+            '<stop offset="0%" style="stop-color:#' + randomColor + ';stop-opacity:1" />' +
+            '<stop offset="100%" style="stop-color:#' + randomColor + 'dd;stop-opacity:1" />' +
+          '</linearGradient>' +
+          '<pattern id="brick" x="0" y="0" width="120" height="60" patternUnits="userSpaceOnUse">' +
+            '<rect width="120" height="60" fill="url(#grad)"/>' +
+            '<rect x="2" y="2" width="56" height="26" fill="rgba(0,0,0,0.1)" rx="2"/>' +
+            '<rect x="62" y="2" width="56" height="26" fill="rgba(0,0,0,0.1)" rx="2"/>' +
+            '<rect x="32" y="32" width="56" height="26" fill="rgba(0,0,0,0.1)" rx="2"/>' +
+          '</pattern>' +
+        '</defs>' +
+        '<rect width="1920" height="1080" fill="url(#brick)"/>' +
+        '<rect x="600" y="180" width="720" height="720" fill="rgba(255,255,255,0.95)" rx="20"/>' +
+        '<circle cx="960" cy="400" r="100" fill="rgba(255,200,100,0.3)"/>' +
+        '<text x="960" y="480" font-family="Noto Sans KR, sans-serif" font-size="48" font-weight="bold" fill="#333" text-anchor="middle">' +
+          '이미지 생성 중...' +
+        '</text>' +
+        '<text x="960" y="560" font-family="Noto Sans KR, sans-serif" font-size="24" fill="#666" text-anchor="middle">' +
+          '씬 #' + sceneNumber +
+        '</text>' +
+        '<text x="960" y="620" font-family="Noto Sans KR, sans-serif" font-size="18" fill="#999" text-anchor="middle">' +
+          '따뜻한 손그림 스타일' +
+        '</text>' +
+        '<text x="960" y="680" font-family="Noto Sans KR, sans-serif" font-size="16" fill="#aaa" text-anchor="middle">' +
+          '교육용 일러스트' +
+        '</text>' +
+      '</svg>';
       
       const imageUrl = 'data:image/svg+xml;base64,' + Buffer.from(svgContent).toString('base64');
       return c.json({ success: true, imageUrl: imageUrl, fallback: true });
     }
     
   } catch (error: any) {
-    console.error('오류:', error)
+    console.error('❌ 전체 오류:', error)
     return c.json({ success: false, error: error.message })
   }
 })

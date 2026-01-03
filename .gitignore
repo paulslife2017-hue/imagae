@@ -13,6 +13,7 @@ dist
 
 # dotenv environment variables file
 .env
+.env.local
 .dev.vars
 
 # PM2
@@ -30,6 +31,9 @@ logs/
 # Wrangler
 .wrangler/
 .mf/
+
+# Vercel
+.vercel
 
 # OS files
 .DS_Store
