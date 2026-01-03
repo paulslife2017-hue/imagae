@@ -14,8 +14,10 @@ app.use('/*', cors())
 
 // 환경 변수 확인
 const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY
+const GENSPARK_API_KEY = process.env.GENSPARK_API_KEY
 
 console.log('🔑 Google AI API Key:', GOOGLE_AI_API_KEY ? '✓ 설정됨 (길이: ' + GOOGLE_AI_API_KEY.length + ')' : '✗ 없음')
+console.log('🔑 GenSpark API Key:', GENSPARK_API_KEY ? '✓ 설정됨 (길이: ' + GENSPARK_API_KEY.length + ')' : '✗ 없음')
 
 // 씬 분석 API
 app.post('/api/analyze-scenes', async (c) => {
@@ -242,11 +244,235 @@ app.get('/static/*', async (c) => {
   }
 })
 
+// 씬 이미지 생성 API
+app.post('/api/generate-scene-image', async (c) => {
+  try {
+    const { scene, prompt, index } = await c.req.json()
+    
+    if (!scene || !prompt) {
+      return c.json({ success: false, error: '씬과 프롬프트가 필요합니다' })
+    }
+
+    if (!GOOGLE_AI_API_KEY) {
+      return c.json({ success: false, error: 'Google AI API 키가 설정되지 않았습니다' })
+    }
+
+    console.log(`🎨 씬 ${index + 1} 이미지 생성 시작...`)
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=${GOOGLE_AI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.9,
+          topP: 0.95,
+          topK: 40
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Gemini API 오류:', response.status, errorText)
+      
+      const svg = `<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+        <rect width="1920" height="1080" fill="#8B7355"/>
+        <text x="960" y="540" font-size="60" fill="white" text-anchor="middle">이미지 생성 실패</text>
+      </svg>`
+      
+      return c.json({ 
+        success: false, 
+        error: `Gemini API 오류: ${response.status}`,
+        imageUrl: 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64'),
+        fallback: true
+      })
+    }
+
+    const data = await response.json()
+    
+    if (data.candidates && data.candidates[0]) {
+      const parts = data.candidates[0].content.parts
+      
+      for (const part of parts) {
+        const inlineData = part.inline_data || part.inlineData
+        if (inlineData && inlineData.data) {
+          const imageBase64 = inlineData.data
+          const mimeType = inlineData.mime_type || inlineData.mimeType || 'image/png'
+          const imageUrl = `data:${mimeType};base64,${imageBase64}`
+          console.log(`✅ 씬 ${index + 1} 이미지 생성 성공!`)
+          return c.json({ success: true, imageUrl, scene, index })
+        }
+      }
+    }
+    
+    return c.json({ 
+      success: false, 
+      error: '응답에 이미지 없음',
+      imageUrl: 'data:image/svg+xml;base64,' + Buffer.from('fallback').toString('base64'),
+      fallback: true
+    })
+    
+  } catch (error) {
+    console.error('이미지 생성 오류:', error)
+    return c.json({ 
+      success: false, 
+      error: error.message,
+      fallback: true
+    })
+  }
+})
+
+// 음성 생성 API (GenSpark - Minimax TTS)
+app.post('/api/generate-speech', async (c) => {
+  try {
+    const { text, voiceConfig } = await c.req.json()
+    
+    if (!text) {
+      return c.json({ success: false, error: '텍스트가 필요합니다' })
+    }
+
+    if (!GENSPARK_API_KEY) {
+      return c.json({ success: false, error: 'GenSpark API 키가 설정되지 않았습니다' })
+    }
+
+    console.log('🎤 음성 생성 시작... 텍스트 길이:', text.length)
+
+    const requestBody = {
+      model: 'fal-ai/minimax/speech-2.6-hd',
+      query: text,
+      requirements: voiceConfig?.requirements || '차분하고 신뢰감 있는 중년 남성 목소리, 한국어 발음이 정확하고 자연스러운 나레이션 스타일',
+      file_name: null,
+      task_summary: '한국어 나레이션 음성 생성'
+    }
+
+    const response = await fetch('https://www.genspark.ai/api/spark-ai/audio/generation', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GENSPARK_API_KEY}`
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('GenSpark Audio API 오류:', response.status, errorText)
+      return c.json({ 
+        success: false, 
+        error: `GenSpark Audio API 오류: ${response.status}`,
+        details: errorText
+      })
+    }
+
+    const data = await response.json()
+    
+    if (data.generated_audios && data.generated_audios.length > 0) {
+      const audioUrl = data.generated_audios[0].url
+      const audioParams = data.generated_audios[0].params
+      console.log('✅ 음성 생성 성공!')
+      return c.json({ 
+        success: true, 
+        audioUrl,
+        audioParams
+      })
+    }
+    
+    return c.json({ 
+      success: false, 
+      error: '응답에 오디오 없음'
+    })
+    
+  } catch (error) {
+    console.error('음성 생성 오류:', error)
+    return c.json({ 
+      success: false, 
+      error: error.message
+    })
+  }
+})
+
+// 씬별 음성 생성 API
+app.post('/api/generate-scene-speech', async (c) => {
+  try {
+    const { scene, index, previousAudioParams } = await c.req.json()
+    
+    if (!scene || !scene.description) {
+      return c.json({ success: false, error: '씬 정보가 필요합니다' })
+    }
+
+    if (!GENSPARK_API_KEY) {
+      return c.json({ success: false, error: 'GenSpark API 키가 설정되지 않았습니다' })
+    }
+
+    const narrationText = scene.narration || scene.description
+
+    console.log(`🎤 씬 ${index + 1} 음성 생성... 텍스트: "${narrationText.substring(0, 50)}..."`)
+
+    const requestBody = {
+      model: 'fal-ai/minimax/speech-2.6-hd',
+      query: narrationText,
+      requirements: '중년층에게 신뢰감을 주는 차분한 남성 나레이터 목소리. 속도는 보통보다 약간 느리게, 명확한 발음, 교육적이고 따뜻한 톤.',
+      previous_audio_params: previousAudioParams || undefined,
+      file_name: null,
+      task_summary: `씬 ${index + 1} 나레이션`
+    }
+
+    const response = await fetch('https://www.genspark.ai/api/spark-ai/audio/generation', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GENSPARK_API_KEY}`
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('GenSpark Audio API 오류:', response.status, errorText)
+      return c.json({ 
+        success: false, 
+        error: `GenSpark Audio API 오류: ${response.status}`
+      })
+    }
+
+    const data = await response.json()
+    
+    if (data.generated_audios && data.generated_audios.length > 0) {
+      const audioUrl = data.generated_audios[0].url
+      const audioParams = data.generated_audios[0].params
+      console.log(`✅ 씬 ${index + 1} 음성 생성 성공!`)
+      return c.json({ 
+        success: true, 
+        audioUrl,
+        audioParams,
+        scene: scene,
+        index: index
+      })
+    }
+    
+    return c.json({ 
+      success: false, 
+      error: '응답에 오디오 없음'
+    })
+    
+  } catch (error) {
+    console.error('씬 음성 생성 오류:', error)
+    return c.json({ 
+      success: false, 
+      error: error.message
+    })
+  }
+})
+
 // Health check
 app.get('/health', (c) => {
   return c.json({ 
     status: 'ok', 
     apiKey: GOOGLE_AI_API_KEY ? 'configured' : 'missing',
+    gensparkKey: GENSPARK_API_KEY ? 'configured' : 'missing',
     timestamp: new Date().toISOString()
   })
 })

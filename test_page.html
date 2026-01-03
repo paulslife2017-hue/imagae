@@ -183,6 +183,8 @@ AI가 자동으로 씬을 분석하여 3-10초 간격으로 분할합니다.
             
             let sceneList = [];
             let generatedImages = [];
+            let generatedAudios = [];
+            let previousAudioParams = null; // 음성 일관성 유지용
             
             // 페이지 로드 완료 확인
             window.addEventListener('DOMContentLoaded', () => {
@@ -441,27 +443,71 @@ Use Nano Banana Pro model for best quality.';
 
                     const data = await response.json();
 
-                    if (data.success) {
-                        // 성공 아이콘 표시
-                        statusIcon.innerHTML = '<i class="fas fa-check-circle text-green-600 text-5xl"></i>';
-                        statusText.innerHTML = '<i class="fas fa-check mr-1 text-green-600"></i>생성 완료!';
-                        
-                        // 이미지 미리보기 표시
-                        const img = imagePreview.querySelector('img');
-                        img.src = data.imageUrl;
-                        imagePreview.classList.remove('hidden');
+                    if (!data.success) {
+                        throw new Error(data.error || '이미지 생성 실패');
+                    }
 
-                        generatedImages.push({
+                    // 이미지 미리보기 표시
+                    const img = imagePreview.querySelector('img');
+                    img.src = data.imageUrl;
+                    imagePreview.classList.remove('hidden');
+
+                    // 2단계: 음성 생성
+                    statusText.innerHTML = '<i class="fas fa-microphone mr-1 text-blue-600"></i>이미지 생성 완료! 음성을 생성하고 있습니다... (1-2분 소요)';
+
+                    const audioResponse = await fetch('/api/generate-scene-speech', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            scene: scene,
+                            index: index,
+                            previousAudioParams: previousAudioParams
+                        })
+                    });
+
+                    const audioData = await audioResponse.json();
+
+                    let audioUrl = null;
+                    if (audioData.success) {
+                        audioUrl = audioData.audioUrl;
+                        previousAudioParams = audioData.audioParams; // 다음 음성 일관성 유지
+                        console.log('✅ 씬 ' + (index + 1) + ' 음성 생성 성공!');
+                    } else {
+                        console.warn('⚠️ 씬 ' + (index + 1) + ' 음성 생성 실패:', audioData.error);
+                    }
+
+                    // 성공 아이콘 표시
+                    statusIcon.innerHTML = '<i class="fas fa-check-circle text-green-600 text-5xl"></i>';
+                    statusText.innerHTML = '<i class="fas fa-check mr-1 text-green-600"></i>이미지 + 음성 생성 완료!';
+
+                    // 결과 저장
+                    generatedImages.push({
+                        index: index,
+                        scene: scene,
+                        imageUrl: data.imageUrl,
+                        audioUrl: audioUrl
+                    });
+
+                    if (audioUrl) {
+                        generatedAudios.push({
                             index: index,
                             scene: scene,
-                            imageUrl: data.imageUrl
+                            audioUrl: audioUrl
                         });
-                    } else {
-                        throw new Error(data.error || '생성 실패');
                     }
+
                 } catch (error) {
                     statusIcon.innerHTML = '<i class="fas fa-times-circle text-red-600 text-5xl"></i>';
                     statusText.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-600"></i>실패: ' + error.message;
+                    
+                    // 실패한 경우에도 빈 항목 추가하여 인덱스 유지
+                    generatedImages.push({
+                        index: index,
+                        scene: scene,
+                        imageUrl: null,
+                        audioUrl: null,
+                        error: error.message
+                    });
                 }
             }
 
@@ -474,8 +520,25 @@ Use Nano Banana Pro model for best quality.';
                 completedGrid.innerHTML = '';
 
                 generatedImages.forEach((item) => {
+                    if (!item.imageUrl) return; // 실패한 항목 건너뛰기
+                    
                     const card = document.createElement('div');
                     card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition';
+                    
+                    let audioSection = '';
+                    if (item.audioUrl) {
+                        audioSection = '<div class="mb-3 bg-gray-50 p-3 rounded">' +
+                            '<div class="flex items-center gap-2 mb-2">' +
+                                '<i class="fas fa-volume-up text-blue-600"></i>' +
+                                '<span class="text-xs font-semibold text-gray-700">나레이션</span>' +
+                            '</div>' +
+                            '<audio controls class="w-full" style="height: 32px;">' +
+                                '<source src="' + item.audioUrl + '" type="audio/mp3">' +
+                                '브라우저가 오디오를 지원하지 않습니다.' +
+                            '</audio>' +
+                        '</div>';
+                    }
+                    
                     card.innerHTML = '<img src="' + item.imageUrl + '" alt="Scene ' + (item.index + 1) + '" class="w-full h-48 object-cover">' +
                         '<div class="p-4">' +
                             '<div class="flex justify-between items-center mb-2">' +
@@ -485,11 +548,16 @@ Use Nano Banana Pro model for best quality.';
                                 '</div>' +
                             '</div>' +
                             '<p class="text-sm text-gray-600 mb-3">' + item.scene.description.substring(0, 80) + (item.scene.description.length > 80 ? '...' : '') + '</p>' +
+                            audioSection +
                             '<div class="flex gap-2">' +
                                 '<a href="' + item.imageUrl + '" download="scene_' + String(item.index + 1).padStart(2, '0') + '.png" ' +
                                    'class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition">' +
-                                    '<i class="fas fa-download mr-1"></i>다운로드' +
+                                    '<i class="fas fa-download mr-1"></i>이미지' +
                                 '</a>' +
+                                (item.audioUrl ? '<a href="' + item.audioUrl + '" download="scene_' + String(item.index + 1).padStart(2, '0') + '.mp3" ' +
+                                   'class="flex-1 text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition">' +
+                                    '<i class="fas fa-download mr-1"></i>음성' +
+                                '</a>' : '') +
                                 '<button onclick="regenerateImage(' + item.index + ')" ' +
                                         'class="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded transition">' +
                                     '<i class="fas fa-redo mr-1"></i>재생성' +
@@ -520,6 +588,8 @@ Use Nano Banana Pro model for best quality.';
                     document.getElementById('thumbnailSection').classList.add('hidden');
                     sceneList = [];
                     generatedImages = [];
+                    generatedAudios = [];
+                    previousAudioParams = null;
                 }
             }
 
@@ -554,7 +624,12 @@ Use Nano Banana Pro model for best quality.';
                     return;
                 }
 
-                if (!confirm('총 ' + generatedImages.length + '개 이미지를 ZIP 파일로 다운로드하시겠습니까?')) {
+                const audioCount = generatedImages.filter(item => item.audioUrl).length;
+                const confirmMessage = '총 ' + generatedImages.length + '개 이미지' + 
+                    (audioCount > 0 ? ' + ' + audioCount + '개 음성' : '') + 
+                    '을 ZIP 파일로 다운로드하시겠습니까?';
+                
+                if (!confirm(confirmMessage)) {
                     return;
                 }
 
@@ -577,21 +652,33 @@ Use Nano Banana Pro model for best quality.';
                     statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>ZIP 파일 생성 중...';
                     document.body.appendChild(statusDiv);
 
-                    // 각 이미지를 ZIP에 추가
+                    // 각 이미지와 음성을 ZIP에 추가
                     for (let i = 0; i < generatedImages.length; i++) {
                         const item = generatedImages[i];
-                        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>이미지 추가 중... (' + (i + 1) + '/' + generatedImages.length + ')';
+                        if (!item.imageUrl) continue; // 실패한 항목 건너뛰기
+                        
+                        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>파일 추가 중... (' + (i + 1) + '/' + generatedImages.length + ')';
                         
                         try {
-                            // Data URL을 Blob으로 변환
-                            const response = await fetch(item.imageUrl);
-                            const blob = await response.blob();
+                            // 이미지 추가
+                            const imageResponse = await fetch(item.imageUrl);
+                            const imageBlob = await imageResponse.blob();
+                            const imageFilename = 'scene_' + String(i + 1).padStart(2, '0') + '.png';
+                            folder.file(imageFilename, imageBlob);
                             
-                            // 파일명: scene_01.png, scene_02.png, ...
-                            const filename = 'scene_' + String(i + 1).padStart(2, '0') + '.png';
-                            folder.file(filename, blob);
+                            // 음성 추가 (있는 경우)
+                            if (item.audioUrl) {
+                                try {
+                                    const audioResponse = await fetch(item.audioUrl);
+                                    const audioBlob = await audioResponse.blob();
+                                    const audioFilename = 'scene_' + String(i + 1).padStart(2, '0') + '.mp3';
+                                    folder.file(audioFilename, audioBlob);
+                                } catch (audioError) {
+                                    console.error('음성 ' + (i + 1) + ' 추가 실패:', audioError);
+                                }
+                            }
                         } catch (error) {
-                            console.error('이미지 ' + (i + 1) + ' 추가 실패:', error);
+                            console.error('파일 ' + (i + 1) + ' 추가 실패:', error);
                         }
                     }
 
