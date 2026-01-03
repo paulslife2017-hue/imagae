@@ -1,6 +1,9 @@
 {
   "name": "webapp",
   "type": "module",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'Build completed - Vercel Serverless Functions'",
