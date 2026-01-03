@@ -940,38 +940,55 @@ app.post('/api/generate-image', async (c) => {
       return c.json({ success: false, error: 'API 키가 설정되지 않았습니다' })
     }
 
-    // Gemini Imagen 3.0 API로 이미지 생성
+    // Gemini 2.5 Flash Image 모델로 이미지 생성
     try {
-      const imagenResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`, {
+      const modelName = 'gemini-2.5-flash-image';
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          instances: [{
-            prompt: prompt
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
           }],
-          parameters: {
-            sampleCount: 1,
-            aspectRatio: aspectRatio || '16:9',
-            negativePrompt: 'blurry, low quality, distorted, ugly, bad anatomy, duplicate, watermark',
-            safetyFilterLevel: 'block_some',
-            personGeneration: 'allow_adult'
+          generationConfig: {
+            temperature: 0.9,
+            maxOutputTokens: 8192
           }
         })
       })
 
-      const imagenData = await imagenResponse.json()
+      const data = await response.json()
       
-      if (imagenData.predictions && imagenData.predictions[0]) {
-        const imageBase64 = imagenData.predictions[0].bytesBase64Encoded
-        const imageUrl = `data:image/png;base64,${imageBase64}`
-        return c.json({ success: true, imageUrl: imageUrl })
-      } else {
-        throw new Error('Imagen API 응답 오류: ' + JSON.stringify(imagenData))
+      console.log('Gemini 응답:', JSON.stringify(data).substring(0, 200))
+      
+      // 응답에서 이미지 찾기
+      if (data.candidates && data.candidates[0]) {
+        const parts = data.candidates[0].content.parts;
+        
+        for (const part of parts) {
+          // inline_data 또는 inlineData 확인
+          const inlineData = part.inline_data || part.inlineData;
+          if (inlineData && inlineData.data) {
+            const imageBase64 = inlineData.data;
+            const mimeType = inlineData.mime_type || inlineData.mimeType || 'image/png';
+            const imageUrl = `data:${mimeType};base64,${imageBase64}`;
+            console.log('이미지 생성 성공!');
+            return c.json({ success: true, imageUrl: imageUrl });
+          }
+        }
       }
-    } catch (apiError: any) {
-      console.error('Imagen API 오류:', apiError)
       
-      // Fallback: placeholder 이미지
+      // 이미지가 없으면 오류
+      console.error('Gemini 응답에 이미지 없음:', data);
+      throw new Error('Gemini가 이미지를 생성하지 않음');
+      
+    } catch (apiError: any) {
+      console.error('Gemini API 오류:', apiError)
+      
+      // Fallback: 예쁜 placeholder 이미지
       const colors = ['8B7355', 'A0826D', '6B9AC4', 'D4A574', 'C4A57B'];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
       
@@ -983,16 +1000,21 @@ app.post('/api/generate-image', async (c) => {
           </linearGradient>
         </defs>
         <rect width="1280" height="720" fill="url(#grad)"/>
-        <text x="640" y="340" font-family="Arial" font-size="24" font-weight="bold" fill="white" text-anchor="middle">
-          이미지 생성 대기중
+        <circle cx="200" cy="200" r="80" fill="rgba(255,255,255,0.2)"/>
+        <circle cx="1080" cy="520" r="100" fill="rgba(255,255,255,0.15)"/>
+        <text x="640" y="320" font-family="Arial" font-size="32" font-weight="bold" fill="white" text-anchor="middle">
+          이미지 생성 준비중
         </text>
-        <text x="640" y="390" font-family="Arial" font-size="16" fill="white" text-anchor="middle" opacity="0.9">
-          레퍼런스 스타일: 따뜻한 손그림 일러스트
+        <text x="640" y="380" font-family="Arial" font-size="18" fill="white" text-anchor="middle" opacity="0.9">
+          따뜻한 손그림 일러스트 스타일
+        </text>
+        <text x="640" y="420" font-family="Arial" font-size="14" fill="white" text-anchor="middle" opacity="0.7">
+          Gemini 2.5 Flash Image
         </text>
       </svg>`;
       
       const imageUrl = 'data:image/svg+xml;base64,' + Buffer.from(svgContent).toString('base64');
-      return c.json({ success: true, imageUrl: imageUrl, fallback: true })
+      return c.json({ success: true, imageUrl: imageUrl, fallback: true });
     }
     
   } catch (error: any) {
