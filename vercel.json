@@ -1,4 +1,9 @@
 {
+  "buildCommand": "echo 'Serverless Functions - No build needed'",
+  "outputDirectory": "public",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "framework": null,
   "functions": {
     "api/index.js": {
       "runtime": "@vercel/node@3.0.0"
