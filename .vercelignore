@@ -1,0 +1,8 @@
+# Vercel ignore file
+node_modules
+.git
+.env
+.dev.vars
+dist
+.wrangler
+*.log
