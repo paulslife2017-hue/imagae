@@ -85,7 +85,7 @@ ${story}
   }
 })
 
-// 나노바나나프로 이미지 생성 API (프록시)
+// 나노바나나프로 이미지 생성 API (Google AI API 사용)
 app.post('/generate-image', async (c) => {
   try {
     const { prompt } = await c.req.json()
@@ -94,88 +94,99 @@ app.post('/generate-image', async (c) => {
       return c.json({ success: false, error: '프롬프트가 필요합니다' })
     }
 
-    console.log('🎨 나노바나나프로로 이미지 생성 시작...')
-    
-    // 레퍼런스 이미지
-    const referenceImages = [
-      'https://www.genspark.ai/api/files/s/xCmU67c4',
-      'https://www.genspark.ai/api/files/s/HL5G5AnC'
-    ]
+    const apiKey = process.env.GOOGLE_AI_API_KEY
+    if (!apiKey) {
+      return c.json({ success: false, error: 'Google AI API 키가 설정되지 않았습니다' })
+    }
+
+    console.log('🎨 나노바나나프로 (Gemini 3 Pro Image)로 이미지 생성 시작...')
     
     // 한국어 스타일 프롬프트
     const stylePrompt = `한국 교육 YouTube 콘텐츠용 따뜻한 손그림 일러스트:
 
-핵심 스타일 (레퍼런스 이미지 참조):
+핵심 스타일:
 - 손으로 그린 듯한 디지털 일러스트, 따뜻하고 감성적인 분위기
 - 색상: 따뜻한 갈색(#8B7355), 베이지(#D4A574), 은은한 블루(#6B9AC4)
-- 배경: 붉은 벽돌 벽과 창문이 있는 교실
-- 캐릭터: 단순하지만 표현력 있는 만화풍, 감정 명확
+- 배경: 붉은 벽돌 벽과 창문이 있는 교실 분위기
+- 캐릭터: 단순하지만 표현력 있는 만화풍, 감정이 명확히 드러남
 - 조명: 부드럽고 따뜻한 확산 조명
-- 질감: 종이/캔버스 텍스처, 붓터치 보임
+- 질감: 종이/캔버스 텍스처, 붓터치가 보임
 
-중요: 반드시 명확한 한글 텍스트로 상황 설명 포함 (칠판 글씨나 자막 스타일)
+중요: 반드시 명확하고 읽기 쉬운 한글 텍스트로 상황을 설명해야 합니다.
+칠판에 쓴 글씨처럼 또는 자막처럼 자연스럽게 배치하세요.
 
-씬: ${prompt}
+씬 내용: ${prompt}
 
-16:9, YouTube용, 한글 필수`
+16:9 비율, YouTube용, 한글 텍스트 필수 포함`
 
-    // GenSpark Image Generation API 호출
-    const response = await fetch('https://spark.genspark.ai/api/v1/image-generation', {
+    // Gemini 3 Pro Image (나노바나나프로) API 호출
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=' + apiKey, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + (process.env.GENSPARK_API_KEY || '')
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        query: stylePrompt,
-        model: 'nano-banana-pro',
-        aspect_ratio: '16:9',
-        image_urls: referenceImages,
-        task_summary: '한국 교육 콘텐츠용 일러스트 생성'
+        contents: [{
+          parts: [{ text: stylePrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.9,
+          topP: 0.95,
+          topK: 40
+        }
       })
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('GenSpark API 오류:', response.status, errorText)
-      throw new Error(`GenSpark API 오류: ${response.status}`)
+      console.error('❌ Gemini API 오류:', response.status, errorText)
+      throw new Error('Gemini API 오류: ' + response.status)
     }
 
     const data = await response.json()
-    console.log('✅ GenSpark 응답:', JSON.stringify(data).substring(0, 300))
+    console.log('✅ 나노바나나프로 응답 받음')
     
-    if (data.generated_images && data.generated_images.length > 0) {
-      const imageUrl = data.generated_images[0].url
-      console.log('✅ 나노바나나프로 이미지 생성 성공!')
-      return c.json({ success: true, imageUrl: imageUrl })
+    // 응답에서 이미지 찾기
+    if (data.candidates && data.candidates[0]) {
+      const parts = data.candidates[0].content.parts
+      
+      for (const part of parts) {
+        const inlineData = part.inline_data || part.inlineData
+        if (inlineData && inlineData.data) {
+          const imageBase64 = inlineData.data
+          const mimeType = inlineData.mime_type || inlineData.mimeType || 'image/png'
+          const imageUrl = 'data:' + mimeType + ';base64,' + imageBase64
+          console.log('✅ 나노바나나프로 이미지 생성 성공!')
+          return c.json({ success: true, imageUrl: imageUrl })
+        }
+      }
     }
     
+    console.warn('⚠️ 응답에 이미지 없음:', JSON.stringify(data).substring(0, 300))
     throw new Error('이미지 생성 실패: 응답에 이미지 없음')
     
   } catch (error) {
-    console.error('❌ 이미지 생성 오류:', error)
+    console.error('❌ 이미지 생성 오류:', error.message)
     
     // Fallback placeholder
     const colors = ['8B7355', 'A0826D', '6B9AC4', 'D4A574', 'C4A57B']
     const randomColor = colors[Math.floor(Math.random() * colors.length)]
     const sceneNumber = Math.floor(Math.random() * 100)
     
-    const svg = `<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#${randomColor}"/>
-          <stop offset="100%" style="stop-color:#${randomColor}dd"/>
-        </linearGradient>
-      </defs>
-      <rect width="1920" height="1080" fill="url(#g)"/>
-      <circle cx="960" cy="540" r="150" fill="rgba(255,255,255,0.2)"/>
-      <text x="960" y="500" font-size="60" font-weight="bold" fill="white" text-anchor="middle">이미지 생성 중</text>
-      <text x="960" y="580" font-size="30" fill="white" text-anchor="middle" opacity="0.9">씬 #${sceneNumber}</text>
-      <text x="960" y="640" font-size="24" fill="white" text-anchor="middle" opacity="0.8">나노바나나프로</text>
-    </svg>`
+    const svg = '<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">' +
+      '<defs>' +
+        '<linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">' +
+          '<stop offset="0%" style="stop-color:#' + randomColor + '"/>' +
+          '<stop offset="100%" style="stop-color:#' + randomColor + 'dd"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      '<rect width="1920" height="1080" fill="url(#g)"/>' +
+      '<circle cx="960" cy="540" r="150" fill="rgba(255,255,255,0.2)"/>' +
+      '<text x="960" y="500" font-size="60" font-weight="bold" fill="white" text-anchor="middle">이미지 생성 중</text>' +
+      '<text x="960" y="580" font-size="30" fill="white" text-anchor="middle" opacity="0.9">씬 #' + sceneNumber + '</text>' +
+      '<text x="960" y="640" font-size="24" fill="white" text-anchor="middle" opacity="0.8">나노바나나프로</text>' +
+    '</svg>'
     
     const imageUrl = 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64')
-    return c.json({ success: true, imageUrl: imageUrl, fallback: true })
+    return c.json({ success: true, imageUrl: imageUrl, fallback: true, error: error.message })
   }
 })
 
@@ -213,7 +224,7 @@ app.get('/', (c) => {
                 <i class="fas fa-magic mr-3"></i>
                 AI 스토리 영상 생성기 (나노바나나프로)
             </h1>
-            <p class="text-gray-600 text-lg">Vercel + 나노바나나프로로 구동됩니다</p>
+            <p class="text-gray-600 text-lg">Vercel + Google Gemini 3 Pro Image (나노바나나프로)</p>
         </div>
         
         <div class="bg-white rounded-2xl shadow-xl p-8">
