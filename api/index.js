@@ -2,12 +2,12 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { handle } from '@hono/node-server/vercel'
 
-const app = new Hono().basePath('/api')
+const app = new Hono()
 
 app.use('/*', cors())
 
 // 씬 분석 API
-app.post('/analyze-scenes', async (c) => {
+app.post('/api/analyze-scenes', async (c) => {
   try {
     const { story } = await c.req.json()
     
@@ -86,7 +86,7 @@ ${story}
 })
 
 // 나노바나나프로 이미지 생성 API (Google AI API 사용)
-app.post('/generate-image', async (c) => {
+app.post('/api/generate-image', async (c) => {
   try {
     const { prompt } = await c.req.json()
     
