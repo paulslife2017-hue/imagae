@@ -5,14 +5,22 @@
   "devCommand": "npm run dev",
   "framework": null,
   "functions": {
-    "api/index.js": {
+    "api/*.js": {
       "runtime": "@vercel/node@3.0.0"
     }
   },
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
+      "source": "/",
+      "destination": "/api"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/api"
     }
   ],
   "engines": {
